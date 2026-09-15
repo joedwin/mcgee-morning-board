@@ -139,7 +139,7 @@
   header { display: flex; flex-direction: column; gap: 6px; }
   .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   .controls { display: flex; gap: 8px; flex-wrap: wrap; }
-  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .eyebrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
   h1 {
     margin: 0;
     font-family: var(--font-display);
@@ -194,10 +194,9 @@
   .status .msg .big { display: block; font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1.1; }
   .status .msg .alt { display: block; opacity: 0.85; font-size: 13px; margin-top: 2px; }
   .pill {
-    align-self: start;
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-    padding: 4px 9px; border-radius: 999px; border: 1px solid currentColor; opacity: 0.9; white-space: nowrap;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; opacity: 0.9; white-space: nowrap; letter-spacing: 0.06em;
   }
   .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
   .pill.on .dot { animation: pulse 2s ease-in-out infinite; }
@@ -225,6 +224,7 @@
     transition: background 200ms ease, opacity 200ms ease;
   }
   .row:last-child { border-bottom: 0; }
+  .row.empty { display: block; color: var(--muted); }
   .row.next { background: var(--next-bg); border-left-color: var(--next-rule); }
   .row.gone { opacity: 0.42; }
   .row.gone .depart .time { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--gone); }
@@ -419,7 +419,7 @@
 <div class="page">
   <header>
     <div class="topline">
-      <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower</div>
+      <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower <span class="pill" id="pill"><span class="dot"></span><span id="pillText">Schedule</span></span></div>
       <div class="controls">
         <div class="picker" role="group" aria-label="What to show" id="modePicker">
           <button type="button" data-mode="bus">Bus only</button>
@@ -482,10 +482,6 @@
     </svg>
   </div>
 
-  <div class="status" id="status">
-    <div class="clock" id="clock">--:--<small>am</small></div>
-    <div class="pill" id="pill"><span class="dot"></span><span id="pillText">Schedule</span></div>
-  </div>
 
   <div class="banner" id="banner"></div>
 
@@ -724,32 +720,26 @@
     const look = document.documentElement.dataset.look || 'classic';
     if (look === 'sky') applySky(nowMin);
 
-    const c = fmt(nowMin);
-    document.getElementById('clock').innerHTML = `${c.t}<small>${c.ampm}</small>`;
-
     const banner = document.getElementById('banner');
     if (weekend) banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
     banner.classList.toggle('show', weekend);
 
     const showBart = document.documentElement.dataset.mode !== 'bus';
     const upcomingBart = !showBart ? [] : planning ? BART.slice(0, 4) : BART.filter(r => r.dep >= nowMin).slice(0, 4);
-    const rows = [...BUS, ...upcomingBart].sort((a, b) => a.dep - b.dep);
-    const nextBus = planning ? null : BUS.find(r => r.dep >= nowMin) || null;
-    const nextKey = nextBus ? nextBus.key : null;
+    const upcomingBus = planning ? BUS : BUS.filter(r => r.dep >= nowMin);
+    const rows = [...upcomingBus, ...upcomingBart].sort((a, b) => a.dep - b.dep);
 
     const rowsEl = document.getElementById('rows');
     rowsEl.classList.toggle('flip', flipOnce);
     flipOnce = false;
     rowsEl.innerHTML = rows.map((tr, ri) => {
       const d = fmt(tr.dep), a = fmt(tr.arr);
-      const gone = !planning && tr.dep < nowMin;
-      const isNext = tr.key === nextKey;
       const lv = tr.line === 'BART' ? live.bart[tr.key] : live.act[tr.key];
       const liveMark = lv ? `<span class="livemin${lv.late ? ' late' : ''}">${lv.min <= 0 ? 'Leaving now' : 'Live · ' + lv.min + ' min'}${lv.late ? ' · late' : ''}</span>` : '';
       const metaBits = [`<b>${tr.dist}</b>`];
       if (tr.sub) metaBits.push(esc(tr.sub));
       return `
-        <div class="row${isNext ? ' next' : ''}${gone ? ' gone' : ''}" role="row">
+        <div class="row" role="row">
           <div class="depart"><span class="time">${tr.approx ? '<span class="approx">~</span>' : ''}${chars(d.t, ri)}<span class="ampm">${d.ampm}</span></span>${liveMark}</div>
           <div><span class="line ${tr.line}">${tr.line}</span></div>
           <div class="stop">
@@ -758,7 +748,7 @@
           </div>
           <div class="arrive"><span class="t">${a.t}</span><span class="lbl">${esc(tr.arrLbl)}</span></div>
         </div>`;
-    }).join('');
+    }).join('') || `<div class="row empty">No more express trips this morning. Tomorrow's first bus is the 5:50 J.</div>`;
 
     // Map markers: the next departure per line, blinking when live
     const stopsXY = { BART: [150, 55], J: [150, 120], FS: [150, 185], G: [150, 250] };
