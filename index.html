@@ -2,10 +2,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>McGee Morning Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Karla:wght@400;500;700&display=swap">
 <style>
+  /* ===================== Base tokens (Classic look) ===================== */
   :root {
     --bg: #F7F6F1;
+    --bg-image: none;
     --surface: #FFFFFF;
     --ink: #1B1F1C;
     --muted: #6B7570;
@@ -22,65 +24,111 @@
     --line-bart: #0077B6;
     --amber: #B8561B;
     --live: #0B7A4B;
+    --radius: 6px;
     --font-display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
     --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --font-digits: var(--font-display);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #101613;
-      --surface: #171F1A;
-      --ink: #EEF1EC;
-      --muted: #97A29B;
-      --rule: #263029;
-      --accent: #3FBF83;
-      --accent-ink: #0B1A12;
-      --next-bg: #16302A;
-      --next-rule: #3FBF83;
-      --gone: #566159;
-      --badge-ink: #0B1A12;
-      --line-j: #3FBF83;
-      --line-fs: #6FB0EA;
-      --line-g: #E8965A;
-      --line-bart: #5CC4F5;
-      --amber: #E8965A;
-      --live: #3FBF83;
-      color-scheme: dark;
+      --bg: #101613; --surface: #171F1A; --ink: #EEF1EC; --muted: #97A29B; --rule: #263029;
+      --accent: #3FBF83; --accent-ink: #0B1A12; --next-bg: #16302A; --next-rule: #3FBF83; --gone: #566159;
+      --badge-ink: #0B1A12; --line-j: #3FBF83; --line-fs: #6FB0EA; --line-g: #E8965A; --line-bart: #5CC4F5;
+      --amber: #E8965A; --live: #3FBF83; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #101613;
-    --surface: #171F1A;
-    --ink: #EEF1EC;
-    --muted: #97A29B;
-    --rule: #263029;
-    --accent: #3FBF83;
-    --accent-ink: #0B1A12;
-    --next-bg: #16302A;
-    --next-rule: #3FBF83;
-    --gone: #566159;
-    --badge-ink: #0B1A12;
-    --line-j: #3FBF83;
-    --line-fs: #6FB0EA;
-    --line-g: #E8965A;
-    --line-bart: #5CC4F5;
-    --amber: #E8965A;
-    --live: #3FBF83;
-    color-scheme: dark;
+    --bg: #101613; --surface: #171F1A; --ink: #EEF1EC; --muted: #97A29B; --rule: #263029;
+    --accent: #3FBF83; --accent-ink: #0B1A12; --next-bg: #16302A; --next-rule: #3FBF83; --gone: #566159;
+    --badge-ink: #0B1A12; --line-j: #3FBF83; --line-fs: #6FB0EA; --line-g: #E8965A; --line-bart: #5CC4F5;
+    --amber: #E8965A; --live: #3FBF83; color-scheme: dark;
   }
 
+  /* ===================== Look: Split-flap (always dark) ===================== */
+  :root[data-look="flap"] {
+    --bg: #0C0C0E; --bg-image: none; --surface: #141417; --ink: #F3EFE4; --muted: #8E8B82; --rule: #232327;
+    --accent: #F5B800; --accent-ink: #1A1400; --next-bg: #1C1809; --next-rule: #F5B800; --gone: #4A4A50;
+    --badge-ink: #0C0C0E; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5;
+    --amber: #FF8A3D; --live: #F5B800; --radius: 4px; color-scheme: dark;
+  }
+
+  /* ===================== Look: Transit map (paper) ===================== */
+  :root[data-look="map"] {
+    --bg: #F2EDE2; --bg-image: none; --surface: #FBF8F1; --ink: #22262B; --muted: #6C6A62; --rule: #DDD5C4;
+    --accent: #22262B; --accent-ink: #F6F1E6; --next-bg: #EEE5CF; --next-rule: #B8561B; --gone: #B3AC9D;
+    --badge-ink: #FBF8F1; --line-j: #1E8A55; --line-fs: #2A63A8; --line-g: #D2621E; --line-bart: #1A8FC9;
+    --amber: #B8561B; --live: #1E8A55; --radius: 3px; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-look="map"]:not([data-theme="light"]) {
+      --bg: #1B1D20; --surface: #24272B; --ink: #EEEAE0; --muted: #A09C92; --rule: #34383D;
+      --accent: #EEEAE0; --accent-ink: #1B1D20; --next-bg: #33302A; --next-rule: #F0955A; --gone: #5D6066;
+      --badge-ink: #1B1D20; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F; color-scheme: dark;
+    }
+  }
+  :root[data-look="map"][data-theme="dark"] {
+    --bg: #1B1D20; --surface: #24272B; --ink: #EEEAE0; --muted: #A09C92; --rule: #34383D;
+    --accent: #EEEAE0; --accent-ink: #1B1D20; --next-bg: #33302A; --next-rule: #F0955A; --gone: #5D6066;
+    --badge-ink: #1B1D20; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F; color-scheme: dark;
+  }
+
+  /* ===================== Look: Sky (tokens set live by JS) ===================== */
+  :root[data-look="sky"] {
+    --bg: var(--sky-bottom, #E9F2F7);
+    --bg-image: linear-gradient(180deg, var(--sky-top, #BFDCF2) 0%, var(--sky-bottom, #F4F6F1) 100%);
+    --surface: var(--sky-surface, rgba(255,255,255,0.75));
+    --ink: var(--sky-ink, #1B1F1C); --muted: var(--sky-muted, #66706B); --rule: var(--sky-rule, rgba(0,0,0,0.08));
+    --accent: var(--sky-accent, #0B7A4B); --accent-ink: var(--sky-accent-ink, #FFFFFF);
+    --next-bg: var(--sky-next, rgba(255,255,255,0.35)); --next-rule: var(--sky-accent, #0B7A4B); --gone: var(--sky-muted, #66706B);
+    --badge-ink: #FFFFFF; --live: var(--sky-accent, #0B7A4B); --radius: 10px;
+  }
+
+  /* ===================== Look: Typographic ===================== */
+  :root[data-look="type"] {
+    --bg: #FAFAF7; --bg-image: radial-gradient(var(--rule) 1px, transparent 1px);
+    --surface: #FFFFFF; --ink: #15171A; --muted: #6A6E75; --rule: #DADCE0;
+    --accent: #15171A; --accent-ink: #FAFAF7; --next-bg: #FFF4D6; --next-rule: #15171A; --gone: #B4B7BC;
+    --badge-ink: #FAFAF7; --line-j: #0B7A4B; --line-fs: #1D5F9E; --line-g: #B8561B; --line-bart: #0077B6;
+    --amber: #B8561B; --live: #0B7A4B; --radius: 0px;
+    --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Karla", "Helvetica Neue", Arial, sans-serif;
+    --font-digits: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-look="type"]:not([data-theme="light"]) {
+      --bg: #161719; --surface: #1E2023; --ink: #F1F1EE; --muted: #9A9EA5; --rule: #2C2F34;
+      --accent: #F1F1EE; --accent-ink: #161719; --next-bg: #3A3110; --next-rule: #F1F1EE; --gone: #4E5259;
+      --badge-ink: #161719; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F; color-scheme: dark;
+    }
+  }
+  :root[data-look="type"][data-theme="dark"] {
+    --bg: #161719; --surface: #1E2023; --ink: #F1F1EE; --muted: #9A9EA5; --rule: #2C2F34;
+    --accent: #F1F1EE; --accent-ink: #161719; --next-bg: #3A3110; --next-rule: #F1F1EE; --gone: #4E5259;
+    --badge-ink: #161719; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F; color-scheme: dark;
+  }
+
+  /* ===================== Shared structure ===================== */
   * { box-sizing: border-box; }
+  html { background: var(--bg); }
   body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image: var(--bg-image);
+    background-attachment: fixed;
+    background-size: 100% 100%;
     color: var(--ink);
     font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 600ms ease, color 600ms ease;
   }
+  :root[data-look="type"] body { background-size: 18px 18px; background-attachment: scroll; }
   .page {
-    max-width: 760px;
+    max-width: 780px;
     margin: 0 auto;
     padding: 28px 20px 48px;
     display: flex;
@@ -88,14 +136,9 @@
     gap: 22px;
   }
 
-  header { display: flex; flex-direction: column; gap: 4px; }
-  .eyebrow {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
   h1 {
     margin: 0;
     font-family: var(--font-display);
@@ -105,9 +148,34 @@
     letter-spacing: 0.005em;
     text-wrap: balance;
   }
-  .sub { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+  .sub { margin: 2px 0 0; color: var(--muted); max-width: 62ch; }
 
-  /* Live status strip */
+  /* Look picker */
+  .picker {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .picker button {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 5px 11px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .picker button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* Status strip */
   .status {
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -116,73 +184,40 @@
     background: var(--accent);
     color: var(--accent-ink);
     padding: 16px 20px;
-    border-radius: 6px;
+    border-radius: var(--radius);
   }
-  .status .clock {
-    font-family: var(--font-display);
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
+  .status .clock { font-family: var(--font-digits); font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
   .status .clock small { font-size: 16px; font-weight: 600; margin-left: 4px; }
   .status .msg { font-size: 15px; line-height: 1.4; }
   .status .msg strong { font-weight: 600; }
-  .status .msg .big {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.1;
-  }
+  .status .msg .big { display: block; font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1.1; }
   .status .msg .alt { display: block; opacity: 0.85; font-size: 13px; margin-top: 2px; }
   .pill {
     align-self: start;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 4px 9px;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-    opacity: 0.9;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid currentColor; opacity: 0.9; white-space: nowrap;
   }
   .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
   .pill.on .dot { animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
   /* Board */
-  .board {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 6px;
-    overflow: hidden;
-  }
+  .board { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
   .board-head, .row {
     display: grid;
-    grid-template-columns: 96px 52px 1fr 108px 64px;
+    grid-template-columns: 112px 52px 1fr 112px 64px;
     gap: 14px;
     align-items: center;
     padding: 0 16px;
   }
   .board-head {
-    padding-top: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--rule);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
+    padding-top: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--rule);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
   }
   .board-head .r { text-align: right; }
   .row {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 12px; padding-bottom: 12px;
     border-bottom: 1px solid var(--rule);
     border-left: 4px solid transparent;
     padding-left: 12px;
@@ -191,40 +226,19 @@
   .row:last-child { border-bottom: 0; }
   .row.next { background: var(--next-bg); border-left-color: var(--next-rule); }
   .row.gone { opacity: 0.42; }
-  .row.gone .depart { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--gone); }
+  .row.gone .depart .time { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--gone); }
 
-  .depart {
-    font-family: var(--font-display);
-    font-size: 34px;
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
+  .depart { font-family: var(--font-digits); font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .depart .approx { font-size: 18px; color: var(--muted); vertical-align: top; margin-right: 1px; }
   .depart .ampm { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 2px; }
-  .depart .livemin {
-    display: block;
-    font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--live);
-    margin-top: 4px;
-    letter-spacing: 0.02em;
-  }
+  .depart .ch { display: inline-block; }
+  .depart .livemin { display: block; font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--live); margin-top: 4px; letter-spacing: 0.02em; }
   .depart .livemin.late { color: var(--amber); }
 
   .line {
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--badge-ink);
-    letter-spacing: 0.02em;
+    display: inline-grid; place-items: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--badge-ink); letter-spacing: 0.02em;
   }
   .line.J { background: var(--line-j); }
   .line.FS { background: var(--line-fs); }
@@ -239,86 +253,179 @@
   .row.next .stop .meta .leave.tight { color: var(--amber); }
 
   .arrive { text-align: right; font-variant-numeric: tabular-nums; }
-  .arrive .t { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1; }
+  .arrive .t { font-family: var(--font-digits); font-size: 24px; font-weight: 600; line-height: 1; }
   .arrive .lbl { display: block; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 3px; white-space: nowrap; }
   .ride { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
   .ride b { color: var(--ink); font-weight: 600; font-size: 16px; }
 
-  .banner {
-    display: none;
-    padding: 12px 16px;
-    border: 1px solid var(--rule);
-    border-radius: 6px;
-    color: var(--muted);
-    background: var(--surface);
-  }
+  .banner { display: none; padding: 12px 16px; border: 1px solid var(--rule); border-radius: var(--radius); color: var(--muted); background: var(--surface); }
   .banner.show { display: block; }
 
-  .notes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 28px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .notes h2 {
-    margin: 0 0 6px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; font-size: 13px; color: var(--muted); }
+  .notes h2 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
   .notes p { margin: 0 0 6px; }
-  .notes a, .live-settings a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .notes a, .live-settings a { color: var(--live); text-decoration: none; border-bottom: 1px solid currentColor; }
   .notes a:focus-visible, .live-settings a:focus-visible, .live-settings button:focus-visible, .live-settings input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .stops-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
   .stops-list li { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: baseline; }
   .stops-list .dot { width: 22px; height: 22px; border-radius: 50%; font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--badge-ink); display: inline-grid; place-items: center; }
   .stops-list .dot.BART { border-radius: 5px; font-size: 9px; }
 
-  .live-settings {
-    border-top: 1px solid var(--rule);
-    padding-top: 14px;
-    font-size: 13px;
-    color: var(--muted);
-  }
+  .live-settings { border-top: 1px solid var(--rule); padding-top: 14px; font-size: 13px; color: var(--muted); }
   .live-settings summary { cursor: pointer; font-weight: 600; color: var(--ink); }
   .live-settings .field { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; }
-  .live-settings input {
-    flex: 1 1 240px;
-    font: inherit;
-    padding: 7px 10px;
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    background: var(--surface);
-    color: var(--ink);
-  }
-  .live-settings button {
-    font: inherit;
-    font-weight: 600;
-    padding: 7px 14px;
-    border: 0;
-    border-radius: 4px;
-    background: var(--accent);
-    color: var(--accent-ink);
-    cursor: pointer;
-  }
+  .live-settings input { flex: 1 1 240px; font: inherit; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--ink); }
+  .live-settings button { font: inherit; font-weight: 600; padding: 7px 14px; border: 0; border-radius: 4px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
   .live-settings .feed { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin-top: 8px; }
   .live-settings .feed b { color: var(--ink); font-weight: 600; }
 
-  @media (max-width: 560px) {
+  /* Look-specific heroes (hidden unless that look is on) */
+  .hero-map, .hero-count { display: none; }
+  :root[data-look="map"] .hero-map { display: block; }
+  :root[data-look="countdown"] .hero-count { display: grid; }
+
+  /* ===================== Split-flap specifics ===================== */
+  :root[data-look="flap"] .page { max-width: 820px; }
+  :root[data-look="flap"] h1 { font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 30px; color: var(--accent); }
+  :root[data-look="flap"] .sub { font-size: 13px; letter-spacing: 0.02em; }
+  :root[data-look="flap"] .status { background: #17171B; color: var(--ink); border: 1px solid var(--rule); box-shadow: inset 0 0 0 1px #000; }
+  :root[data-look="flap"] .status .clock { color: var(--accent); text-shadow: 0 0 18px rgba(245,184,0,0.35); }
+  :root[data-look="flap"] .status .msg .big { color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; }
+  :root[data-look="flap"] .board { background: #08080A; border-color: #000; box-shadow: inset 0 0 0 1px #202024; }
+  :root[data-look="flap"] .board-head { background: #121215; color: #6E6C64; letter-spacing: 0.14em; }
+  :root[data-look="flap"] .row { background: var(--surface); border-bottom: 3px solid #08080A; border-left-width: 0; padding-left: 16px; }
+  :root[data-look="flap"] .row.next { background: var(--next-bg); box-shadow: inset 4px 0 0 var(--accent); }
+  :root[data-look="flap"] .row.gone { opacity: 0.35; }
+  :root[data-look="flap"] .stop .name, :root[data-look="flap"] .arrive .t, :root[data-look="flap"] .ride b { text-transform: uppercase; letter-spacing: 0.06em; }
+  :root[data-look="flap"] .stop .name { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+  :root[data-look="flap"] .depart { font-size: 30px; letter-spacing: 0; }
+  :root[data-look="flap"] .depart .ch {
+    position: relative;
+    width: 0.66em; height: 1.18em; line-height: 1.18em;
+    margin-right: 2px;
+    text-align: center;
+    background: linear-gradient(180deg, #232327 0%, #1A1A1E 49%, #101013 51%, #161619 100%);
+    border-radius: 3px;
+    color: var(--accent);
+    box-shadow: 0 1px 0 #2C2C31, inset 0 0 0 1px #000;
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+  }
+  :root[data-look="flap"] .depart .ch::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #000; opacity: 0.9; }
+  :root[data-look="flap"] .depart .ch.colon { width: 0.34em; background: none; box-shadow: none; }
+  :root[data-look="flap"] .depart .ch.colon::after { display: none; }
+  :root[data-look="flap"] .depart .ampm { color: #8E8B82; }
+  :root[data-look="flap"] .depart .approx { color: #8E8B82; }
+  :root[data-look="flap"] .flip .ch { animation: flapIn 420ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 45ms + var(--r, 0) * 60ms); }
+  @keyframes flapIn { 0% { transform: rotateX(-90deg); } 60% { transform: rotateX(18deg); } 100% { transform: rotateX(0); } }
+  :root[data-look="flap"] .line { border-radius: 3px; }
+  :root[data-look="flap"] .picker { background: #17171B; border-color: #2C2C31; }
+
+  /* ===================== Map specifics ===================== */
+  .hero-map { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 12px 6px; }
+  .hero-map svg { width: 100%; height: auto; display: block; }
+  .hero-map .lbl { font-family: var(--font-display); font-size: 13px; font-weight: 600; fill: var(--ink); letter-spacing: 0.02em; }
+  .hero-map .lbl.small { font-size: 11px; font-weight: 500; fill: var(--muted); font-family: var(--font-body); }
+  .hero-map .water { fill: var(--line-bart); opacity: 0.12; }
+  .hero-map .route { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .hero-map .route.J { stroke: var(--line-j); }
+  .hero-map .route.FS { stroke: var(--line-fs); }
+  .hero-map .route.G { stroke: var(--line-g); }
+  .hero-map .route.BART { stroke: var(--line-bart); stroke-dasharray: 10 7; }
+  .hero-map .station { fill: var(--surface); stroke: var(--ink); stroke-width: 3; }
+  .hero-map .home { fill: var(--ink); }
+  .hero-map .hub { fill: var(--ink); }
+  .hero-map .bus { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+  .hero-map .bus.live { animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .hero-map .eta { font-family: var(--font-digits); font-size: 14px; font-weight: 700; fill: var(--ink); font-variant-numeric: tabular-nums; }
+  :root[data-look="map"] h1 { font-weight: 600; letter-spacing: 0.02em; }
+  :root[data-look="map"] .status { background: var(--surface); color: var(--ink); border: 2px solid var(--ink); }
+  :root[data-look="map"] .status .clock, :root[data-look="map"] .status .msg .big { color: var(--ink); }
+  :root[data-look="map"] .board { border-width: 2px; border-color: var(--ink); }
+  :root[data-look="map"] .picker button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+  /* ===================== Sky specifics ===================== */
+  :root[data-look="sky"] .board, :root[data-look="sky"] .banner, :root[data-look="sky"] .picker, :root[data-look="sky"] .live-settings input {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  :root[data-look="sky"] .status { background: var(--sky-strip, rgba(255,255,255,0.35)); color: var(--ink); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--rule); }
+  :root[data-look="sky"] .status .msg .big, :root[data-look="sky"] .status .clock { color: var(--ink); }
+  :root[data-look="sky"] .row.next { background: var(--next-bg); }
+  :root[data-look="sky"] .sun-note { font-size: 12px; color: var(--muted); }
+  .sun-note { display: none; }
+  :root[data-look="sky"] .sun-note { display: block; }
+  :root[data-look="sky"] .picker button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  /* ===================== Countdown specifics ===================== */
+  .hero-count {
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+  .ring { position: relative; width: 200px; height: 200px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring .track { fill: none; stroke: var(--rule); stroke-width: 12; }
+  .ring .prog { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 900ms ease; }
+  .ring .prog.tight { stroke: var(--amber); }
+  .ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .ring .num { font-family: var(--font-digits); font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ring .unit { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .hero-count .what { display: flex; flex-direction: column; gap: 4px; }
+  .hero-count .what .k { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .hero-count .what .v { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.05; text-wrap: balance; }
+  .hero-count .what .d { color: var(--muted); font-size: 14px; }
+  :root[data-look="countdown"] .status { display: none; }
+  :root[data-look="countdown"] .depart { font-size: 26px; }
+  :root[data-look="countdown"] .row { padding-top: 8px; padding-bottom: 8px; }
+  :root[data-look="countdown"] .line { width: 36px; height: 36px; font-size: 18px; }
+  :root[data-look="countdown"] .arrive .t { font-size: 20px; }
+
+  /* ===================== Typographic specifics ===================== */
+  :root[data-look="type"] h1 { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 0.95; font-variation-settings: "opsz" 96; }
+  :root[data-look="type"] .eyebrow { color: var(--muted); }
+  :root[data-look="type"] .sub { font-size: 16px; }
+  :root[data-look="type"] .status {
+    grid-template-columns: auto 1fr auto;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 18px 28px;
+    -webkit-mask: radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px), radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+    mask: radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px), radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+  }
+  :root[data-look="type"] .status .clock { padding-right: 20px; border-right: 2px dashed rgba(255,255,255,0.35); font-weight: 800; letter-spacing: -0.02em; }
+  :root[data-look="type"] .status .msg .big { font-weight: 800; letter-spacing: -0.02em; font-size: 26px; }
+  :root[data-look="type"] .board { border-width: 2px; border-color: var(--ink); box-shadow: 6px 6px 0 var(--rule); }
+  :root[data-look="type"] .board-head { border-bottom-width: 2px; border-bottom-color: var(--ink); }
+  :root[data-look="type"] .row { border-left-width: 0; padding-left: 16px; }
+  :root[data-look="type"] .row.next { box-shadow: inset 6px 0 0 var(--ink); }
+  :root[data-look="type"] .row.gone { animation: fadeOut 900ms ease both; }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0.32; } }
+  :root[data-look="type"] .depart { font-weight: 800; letter-spacing: -0.03em; font-size: 36px; }
+  :root[data-look="type"] .arrive .t { font-weight: 800; letter-spacing: -0.02em; }
+  :root[data-look="type"] .line { border-radius: 0; width: 42px; height: 42px; font-size: 20px; }
+  :root[data-look="type"] .line.BART { font-size: 12px; }
+  :root[data-look="type"] .picker { border-radius: 0; border-width: 2px; border-color: var(--ink); }
+  :root[data-look="type"] .picker button { border-radius: 0; }
+  :root[data-look="type"] .picker button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  :root[data-look="type"] .stops-list .dot { border-radius: 0; }
+
+  /* ===================== Responsive ===================== */
+  @media (max-width: 600px) {
     .page { padding: 20px 12px 40px; gap: 16px; }
     h1 { font-size: 36px; }
+    :root[data-look="type"] h1 { font-size: 46px; }
+    .picker { overflow-x: auto; max-width: 100%; }
     .status { grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 16px; }
     .status .msg { grid-column: 1 / -1; }
+    :root[data-look="type"] .status .clock { border-right: 0; padding-right: 0; }
     .board-head { display: none; }
-    .row {
-      grid-template-columns: 78px 40px 1fr;
-      grid-template-rows: auto auto;
-      gap: 6px 10px;
-      padding-right: 12px;
-    }
+    .row { grid-template-columns: 90px 40px 1fr; grid-template-rows: auto auto; gap: 6px 10px; padding-right: 12px; }
     .depart { font-size: 30px; }
     .line { width: 38px; height: 38px; font-size: 19px; }
     .line.BART { font-size: 12px; }
@@ -328,19 +435,94 @@
     .arrive .lbl { margin: 0; }
     .ride { grid-column: 3; grid-row: 2; justify-self: end; align-self: baseline; }
     .notes { grid-template-columns: 1fr; }
+    .hero-count { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .hero-count .what .v { font-size: 28px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .row { transition: none; }
-    .pill.on .dot { animation: none; }
+    .row, body { transition: none; }
+    .pill.on .dot, .hero-map .bus.live { animation: none; }
+    :root[data-look="flap"] .flip .ch { animation: none; }
+    :root[data-look="type"] .row.gone { animation: none; }
+    .ring .prog { transition: none; }
   }
 </style>
 
 <div class="page">
   <header>
-    <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower</div>
+    <div class="topline">
+      <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower</div>
+      <div class="picker" role="group" aria-label="Choose a look" id="picker">
+        <button type="button" data-look="classic">Classic</button>
+        <button type="button" data-look="flap">Split-flap</button>
+        <button type="button" data-look="map">Map</button>
+        <button type="button" data-look="sky">Sky</button>
+        <button type="button" data-look="countdown">Countdown</button>
+        <button type="button" data-look="type">Type</button>
+      </div>
+    </div>
     <h1>McGee Morning Board</h1>
     <p class="sub">Transbay buses under 37 minutes from the closest stop on each line, plus the next BART trains from North Berkeley. Past trips fade out; the next one you can still make is highlighted.</p>
+    <p class="sun-note" id="sunNote"></p>
   </header>
+
+  <!-- Map look: schematic hero -->
+  <div class="hero-map" aria-label="Schematic map of the four routes">
+    <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Routes from North Berkeley converging on the Salesforce Transit Center">
+      <path class="water" d="M400 0 C 380 70, 380 140, 410 200 C 430 240, 460 280, 500 300 L 590 300 C 550 240, 530 170, 550 100 C 560 60, 575 30, 590 0 Z"/>
+      <text class="lbl small" x="485" y="150" text-anchor="middle">San Francisco Bay</text>
+      <!-- BART: Transbay Tube -->
+      <path class="route BART" d="M150 55 H 290 C 340 55, 360 110, 400 130 H 520 C 610 130, 640 150, 690 150"/>
+      <!-- J: Sacramento St, Ashby, Emeryville, I-80 -->
+      <path class="route J" d="M150 120 H 240 C 280 120, 290 175, 330 180 H 380 C 430 180, 440 160, 480 158 H 560 C 620 158, 650 152, 690 150"/>
+      <!-- FS: University Ave to I-80 -->
+      <path class="route FS" d="M150 185 H 280 C 340 185, 350 145, 400 145 H 520 C 610 145, 640 149, 690 150"/>
+      <!-- G: San Pablo, University Ave to I-80 -->
+      <path class="route G" d="M150 250 H 260 C 320 250, 320 152, 380 152 H 520 C 610 152, 645 151, 690 150"/>
+      <!-- Home + bike legs -->
+      <line x1="50" y1="150" x2="150" y2="55" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
+      <line x1="50" y1="150" x2="150" y2="120" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
+      <line x1="50" y1="150" x2="150" y2="185" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
+      <line x1="50" y1="150" x2="150" y2="250" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
+      <circle class="home" cx="50" cy="150" r="8"/>
+      <text class="lbl" x="50" y="175" text-anchor="middle">Home</text>
+      <text class="lbl small" x="50" y="189" text-anchor="middle">bike</text>
+      <!-- Stops -->
+      <circle class="station" cx="150" cy="55" r="7"/>
+      <text class="lbl" x="150" y="40">North Berkeley BART</text>
+      <text class="lbl small" x="150" y="76">0.35 mi · Red direct / Orange + transfer</text>
+      <circle class="station" cx="150" cy="120" r="7"/>
+      <text class="lbl" x="150" y="105">J · Sacramento &amp; University</text>
+      <text class="lbl small" x="150" y="141">0.5 mi · via Ashby &amp; Emeryville</text>
+      <circle class="station" cx="150" cy="185" r="7"/>
+      <text class="lbl" x="150" y="170">FS · Shattuck &amp; Cedar</text>
+      <text class="lbl small" x="150" y="206">0.5 mi · via University Ave</text>
+      <circle class="station" cx="150" cy="250" r="7"/>
+      <text class="lbl" x="150" y="235">G · San Pablo &amp; Cedar</text>
+      <text class="lbl small" x="150" y="271">0.9 mi · via University Ave</text>
+      <!-- Hub -->
+      <rect class="hub" x="682" y="142" width="16" height="16" rx="3"/>
+      <text class="lbl" x="752" y="180" text-anchor="end">Salesforce Transit Center</text>
+      <text class="lbl small" x="752" y="194" text-anchor="end">Montgomery BART · 5 min walk</text>
+      <!-- Next departure per line, filled by JS -->
+      <g id="mapMarkers"></g>
+    </svg>
+  </div>
+
+  <!-- Countdown look: hero ring -->
+  <div class="hero-count" aria-live="polite">
+    <div class="ring">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="track" cx="100" cy="100" r="88"/>
+        <circle class="prog" id="ringProg" cx="100" cy="100" r="88" stroke-dasharray="552.9" stroke-dashoffset="0"/>
+      </svg>
+      <div class="center"><div class="num" id="ringNum">--</div><div class="unit" id="ringUnit">min to leave</div></div>
+    </div>
+    <div class="what">
+      <div class="k" id="ringK">Next bus</div>
+      <div class="v" id="ringV">Checking the clock…</div>
+      <div class="d" id="ringD"></div>
+    </div>
+  </div>
 
   <div class="status" id="status" aria-live="polite">
     <div class="clock" id="clock">--:--<small>am</small></div>
@@ -380,7 +562,7 @@
 
   <details class="live-settings" id="liveSettings">
     <summary>Live predictions</summary>
-    <p>When this page is hosted outside claude.ai, it pulls real-time departures from BART's public API automatically. AC Transit needs a free personal token: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the token here. It stays in this browser only.</p>
+    <p>BART real-time departures come from BART's public API. AC Transit needs a free personal token: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the token here. It stays in this browser only.</p>
     <div class="field">
       <input type="text" id="actToken" placeholder="AC Transit API token" autocomplete="off" spellcheck="false" aria-label="AC Transit API token">
       <button type="button" id="saveToken">Save</button>
@@ -394,7 +576,6 @@
 
 <script>
   // ---------- Schedule data ----------
-  // dep/arr: minutes after midnight. lead: minutes before departure to leave the house.
   const BUS = [
     { key:'J-350',  dep: 5*60+50, line: 'J',  stop: 'Sacramento & University', dist: '0.5 mi', lead: 8,  arr: 6*60+24, approx: false, stpid: '792', arrLbl: 'Salesforce TC' },
     { key:'FS-377', dep: 6*60+17, line: 'FS', stop: 'Shattuck & Cedar',        dist: '0.5 mi', lead: 8,  arr: 6*60+50, approx: false, stpid: '652', arrLbl: 'Salesforce TC' },
@@ -405,7 +586,6 @@
     { key:'G-536',  dep: 8*60+56, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+23, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
     { key:'G-558',  dep: 9*60+18, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+45, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
   ];
-  // BART weekday pattern from North Berkeley: Red direct at :02 :22 :42, Orange with a MacArthur transfer at :14 :34 :54. 27 min to Montgomery.
   const BART = [];
   for (let h = 5; h <= 9; h++) {
     for (const [m, direct] of [[2,true],[14,false],[22,true],[34,false],[42,true],[54,false]]) {
@@ -417,6 +597,7 @@
   const BART_KEY = 'MW9S-E7SL-26DU-VV8V';
   const BART_ETD = 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=NBRK&key=' + BART_KEY + '&json=y';
   const ACT_PRED = 'https://api.actransit.org/transit/actrealtime/prediction?stpid=792,652,625&rt=J,FS,G&top=20&tmres=m&token=';
+  const HOME = { lat: 37.877, lon: -122.278 };
 
   // ---------- Helpers ----------
   const fmt = (m) => {
@@ -426,13 +607,12 @@
   };
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const nowMinutes = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
+  const chars = (t, rowIndex) => t.split('').map((c, i) => `<span class="ch${c === ':' ? ' colon' : ''}" style="--i:${i};--r:${rowIndex}">${c}</span>`).join('');
 
-  // live[key] = { min: minutes from now, late: bool }
   const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null };
 
   // ---------- Live feeds ----------
   function attachLive(rows, estimates, store, tolerance) {
-    // estimates: [{type, min, late}] ; match each to the closest scheduled row of the same type within tolerance
     const now = nowMinutes();
     for (const k in store) delete store[k];
     for (const e of estimates) {
@@ -446,7 +626,6 @@
       if (best) store[best.key] = { min: e.min, late: e.late || predicted - best.dep >= 3 };
     }
   }
-
   async function fetchBart() {
     try {
       const res = await fetch(BART_ETD, { cache: 'no-store' });
@@ -466,12 +645,10 @@
       attachLive(BART.map(r => ({ ...r, type: r.direct ? 'direct' : 'xfer' })), ests, live.bart, 9);
       live.bartAt = new Date(); live.bartErr = null;
     } catch (err) {
-      live.bartErr = err && err.message ? err.message : 'blocked';
-      live.bartAt = null;
+      live.bartErr = err && err.message ? err.message : 'blocked'; live.bartAt = null;
       for (const k in live.bart) delete live.bart[k];
     }
   }
-
   async function fetchAct() {
     let token = '';
     try { token = localStorage.getItem('actToken') || ''; } catch (e) {}
@@ -486,7 +663,7 @@
       const ests = [];
       for (const p of prds) {
         const dir = ((p.rtdir || '') + ' ' + (p.des || '')).toLowerCase();
-        if (dir && !/san francisco|transbay|salesforce|westbound/.test(dir)) continue;
+        if (dir.trim() && !/san francisco|transbay|salesforce|westbound/.test(dir)) continue;
         let min = parseInt(p.prdctdn, 10);
         if (Number.isNaN(min)) {
           if (/due/i.test(p.prdctdn || '')) min = 0;
@@ -501,15 +678,78 @@
       attachLive(BUS.map(r => ({ ...r, type: r.line + '@' + r.stpid })), ests, live.act, 15);
       live.actAt = new Date(); live.actErr = null;
     } catch (err) {
-      live.actErr = err && err.message ? err.message : 'blocked';
-      live.actAt = null;
+      live.actErr = err && err.message ? err.message : 'blocked'; live.actAt = null;
       for (const k in live.act) delete live.act[k];
     }
   }
+  async function refreshLive() { await Promise.all([fetchBart(), fetchAct()]); render(); }
 
-  async function refreshLive() {
-    await Promise.all([fetchBart(), fetchAct()]);
-    render();
+  // ---------- Sun position for the Sky look ----------
+  function sunTimes(date, lat, lon) {
+    const rad = Math.PI / 180;
+    const doy = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+    const lngHour = lon / 15;
+    function calc(rising) {
+      const t = doy + ((rising ? 6 : 18) - lngHour) / 24;
+      const M = (0.9856 * t) - 3.289;
+      let L = M + (1.916 * Math.sin(M * rad)) + (0.020 * Math.sin(2 * M * rad)) + 282.634; L = (L + 360) % 360;
+      let RA = Math.atan(0.91764 * Math.tan(L * rad)) / rad; RA = (RA + 360) % 360;
+      RA = (RA + (Math.floor(L / 90) * 90 - Math.floor(RA / 90) * 90)) / 15;
+      const sinDec = 0.39782 * Math.sin(L * rad), cosDec = Math.cos(Math.asin(sinDec));
+      const cosH = (Math.cos(90.833 * rad) - (sinDec * Math.sin(lat * rad))) / (cosDec * Math.cos(lat * rad));
+      if (cosH > 1 || cosH < -1) return null;
+      let H = rising ? 360 - Math.acos(cosH) / rad : Math.acos(cosH) / rad; H /= 15;
+      const T = H + RA - (0.06571 * t) - 6.622;
+      let UT = ((T - lngHour) % 24 + 24) % 24;
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(UT), Math.round((UT % 1) * 60)));
+      return d.getHours() * 60 + d.getMinutes();
+    }
+    return { rise: calc(true), set: calc(false) };
+  }
+  // Keyframes: [minutes relative to an anchor, top, bottom, ink, muted, accent, accentInk, surfaceAlpha]
+  function skyPalette(nowMin, rise, set) {
+    const K = [
+      [rise - 150, '#0A0F24', '#141B3A', '#E8ECF7', '#9AA3C2', '#F2C46D', '#1A1400', 0.08, 'dark'],
+      [rise - 50,  '#1E2148', '#7B4C6A', '#F5EEF3', '#C7B4C9', '#FFB36B', '#1A1400', 0.10, 'dark'],
+      [rise,       '#5D6FB3', '#F2A47A', '#1E1B2E', '#4E4860', '#8A2B3A', '#FFFFFF', 0.55, 'light'],
+      [rise + 60,  '#A9CBEA', '#F3E6D5', '#1C2430', '#5E6B78', '#1D5F9E', '#FFFFFF', 0.70, 'light'],
+      [rise + 180, '#BFDCF2', '#F4F6F1', '#1B1F1C', '#66706B', '#0B7A4B', '#FFFFFF', 0.80, 'light'],
+      [set - 120,  '#9FC3E6', '#F6E4C8', '#1E1E24', '#625F66', '#B8561B', '#FFFFFF', 0.72, 'light'],
+      [set,        '#3E4A8C', '#F08A5D', '#2A1A20', '#5A4650', '#8A2B3A', '#FFFFFF', 0.50, 'light'],
+      [set + 60,   '#141B3A', '#4A3466', '#EEE8F3', '#B7A9C6', '#F2C46D', '#1A1400', 0.08, 'dark'],
+      [set + 150,  '#0A0F24', '#141B3A', '#E8ECF7', '#9AA3C2', '#F2C46D', '#1A1400', 0.08, 'dark'],
+    ];
+    const hex = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+    const mix = (a, b, t) => '#' + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
+    let i = 0;
+    if (nowMin <= K[0][0]) return K[0];
+    if (nowMin >= K[K.length-1][0]) return K[K.length-1];
+    while (nowMin > K[i+1][0]) i++;
+    const a = K[i], b = K[i+1], t = (nowMin - a[0]) / (b[0] - a[0]);
+    // snap ink/muted/accent to whichever keyframe is nearer so text never lands on a muddy midpoint
+    const near = t < 0.5 ? a : b;
+    return [0, mix(a[1], b[1], t), mix(a[2], b[2], t), near[3], near[4], near[5], near[6], a[7] + (b[7] - a[7]) * t, near[8]];
+  }
+  function applySky(nowMin) {
+    const now = new Date();
+    const s = sunTimes(now, HOME.lat, HOME.lon);
+    const rise = s.rise ?? 6*60+45, set = s.set ?? 19*60+15;
+    const p = skyPalette(nowMin, rise, set);
+    const r = document.documentElement.style;
+    r.setProperty('--sky-top', p[1]); r.setProperty('--sky-bottom', p[2]);
+    r.setProperty('--sky-ink', p[3]); r.setProperty('--sky-muted', p[4]);
+    r.setProperty('--sky-accent', p[5]); r.setProperty('--sky-accent-ink', p[6]);
+    const dark = p[8] === 'dark';
+    r.setProperty('--sky-surface', dark ? `rgba(255,255,255,${p[7]})` : `rgba(255,255,255,${p[7]})`);
+    r.setProperty('--sky-strip', dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.45)');
+    r.setProperty('--sky-rule', dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.09)');
+    r.setProperty('--sky-next', dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.65)');
+    const rf = fmt(rise), sf = fmt(set);
+    document.getElementById('sunNote').textContent = `Berkeley sunrise ${rf.t}${rf.ampm} · sunset ${sf.t}${sf.ampm}. The sky behind this page follows the real one.`;
+  }
+  function clearSky() {
+    const r = document.documentElement.style;
+    ['--sky-top','--sky-bottom','--sky-ink','--sky-muted','--sky-accent','--sky-accent-ink','--sky-surface','--sky-strip','--sky-rule','--sky-next'].forEach(k => r.removeProperty(k));
   }
 
   // ---------- Render ----------
@@ -518,6 +758,7 @@
     if (err === 'no-token') return noTokenText;
     return 'Schedule only (' + (err && err !== 'blocked' && !/fetch/i.test(err) ? err : 'this host blocks outside requests') + ')';
   }
+  let flipOnce = true;
 
   function render() {
     const now = new Date();
@@ -525,25 +766,26 @@
     const day = now.getDay();
     const weekend = day === 0 || day === 6;
     const planning = weekend || nowMin >= 10 * 60;
+    const look = document.documentElement.dataset.look || 'classic';
+    if (look === 'sky') applySky(nowMin);
 
     const c = fmt(nowMin);
     document.getElementById('clock').innerHTML = `${c.t}<small>${c.ampm}</small>`;
 
     const banner = document.getElementById('banner');
-    if (weekend) {
-      banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
-    }
+    if (weekend) banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
     banner.classList.toggle('show', weekend);
 
-    // Which rows to show: all buses; BART only the next few (or the first few of the morning when planning).
     const upcomingBart = planning ? BART.slice(0, 4) : BART.filter(r => r.dep - r.lead >= nowMin).slice(0, 4);
     const rows = [...BUS, ...upcomingBart].sort((a, b) => a.dep - b.dep);
-
     const nextBus = planning ? null : BUS.find(r => r.dep - r.lead >= nowMin) || null;
     const nextBart = planning ? null : upcomingBart[0] || null;
     const nextKey = nextBus ? nextBus.key : null;
 
-    document.getElementById('rows').innerHTML = rows.map((tr) => {
+    const rowsEl = document.getElementById('rows');
+    rowsEl.classList.toggle('flip', flipOnce);
+    flipOnce = false;
+    rowsEl.innerHTML = rows.map((tr, ri) => {
       const d = fmt(tr.dep), a = fmt(tr.arr);
       const gone = !planning && tr.dep - tr.lead < nowMin;
       const isNext = tr.key === nextKey;
@@ -568,7 +810,7 @@
       if (leave) metaBits.push(leave);
       return `
         <div class="row${isNext ? ' next' : ''}${gone ? ' gone' : ''}" role="row">
-          <div class="depart">${tr.approx ? '<span class="approx">~</span>' : ''}${d.t}<span class="ampm">${d.ampm}</span>${liveMark}</div>
+          <div class="depart"><span class="time">${tr.approx ? '<span class="approx">~</span>' : ''}${chars(d.t, ri)}<span class="ampm">${d.ampm}</span></span>${liveMark}</div>
           <div><span class="line ${tr.line}">${tr.line}</span></div>
           <div class="stop">
             <span class="name">${esc(tr.stop)}</span>
@@ -588,12 +830,17 @@
       const when = lv ? `${lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min'}` : `at ${d.t}`;
       return `<span class="alt">Or BART ${when}${r.direct ? ' (direct)' : ' (transfer)'} · Montgomery ${a.t}${a.ampm}</span>`;
     };
+    let nextLeaveIn = null, nextLabel = '', nextDetail = '';
     if (weekend) {
       msg.innerHTML = `<strong>No transbay express today.</strong> First bus Monday is the <strong>5:50 J</strong> from Sacramento &amp; University.`;
+      nextLabel = 'No express buses today'; nextDetail = 'First bus Monday is the 5:50 J.';
     } else if (planning) {
       msg.innerHTML = `<strong>This morning's buses have all left.</strong> Tomorrow's first is the <strong>5:50 J</strong> from Sacramento &amp; University; BART runs from 5:02.`;
+      nextLabel = 'Done for today'; nextDetail = "Tomorrow's first bus is the 5:50 J; BART runs from 5:02.";
     } else if (!nextBus) {
       msg.innerHTML = `<span class="big">You've missed the last express bus.</span>The F runs every 20 to 30 minutes from Shattuck &amp; Allston, about 41 minutes to the Transit Center.${bartLine(nextBart)}`;
+      if (nextBart) { nextLeaveIn = (live.bart[nextBart.key] ? nowMin + live.bart[nextBart.key].min : nextBart.dep) - nextBart.lead - nowMin; nextLabel = `BART ${fmt(nextBart.dep).t}${nextBart.direct ? ' direct' : ' via MacArthur'}`; nextDetail = `North Berkeley, 0.35 mi · Montgomery ${fmt(nextBart.arr).t}${fmt(nextBart.arr).ampm}`; }
+      else { nextLabel = 'Last express has left'; nextDetail = 'The F runs every 20 to 30 minutes from Shattuck & Allston.'; }
     } else {
       const tr = nextBus;
       const d = fmt(tr.dep), a = fmt(tr.arr);
@@ -601,16 +848,60 @@
       const leaveIn = (lv ? nowMin + lv.min : tr.dep) - tr.lead - nowMin;
       const when = leaveIn <= 0 ? 'Leave now' : `Leave in ${leaveIn} min`;
       msg.innerHTML = `<span class="big">${when} for the ${tr.approx && !lv ? '~' : ''}${lv ? fmt(nowMin + lv.min).t : d.t} ${tr.line}</span>${esc(tr.stop)}, ${tr.dist} away · arrives ${a.t}${a.ampm}${bartLine(nextBart)}`;
+      nextLeaveIn = leaveIn;
+      nextLabel = `${tr.approx && !lv ? '~' : ''}${lv ? fmt(nowMin + lv.min).t : d.t} ${tr.line} from ${tr.stop}`;
+      nextDetail = `${tr.dist} away · arrives Salesforce TC ${a.t}${a.ampm}` + (nextBart ? ` · or BART at ${fmt(nextBart.dep).t}` : '');
     }
+
+    // Countdown hero
+    const ringNum = document.getElementById('ringNum'), ringUnit = document.getElementById('ringUnit'), prog = document.getElementById('ringProg');
+    const C = 552.9;
+    if (nextLeaveIn === null) { ringNum.textContent = '—'; ringUnit.textContent = 'nothing to catch'; prog.style.strokeDashoffset = C; prog.classList.remove('tight'); }
+    else if (nextLeaveIn <= 0) { ringNum.textContent = 'Go'; ringUnit.textContent = 'leave now'; prog.style.strokeDashoffset = 0; prog.classList.add('tight'); }
+    else { ringNum.textContent = nextLeaveIn; ringUnit.textContent = 'min to leave'; prog.style.strokeDashoffset = C * (1 - Math.min(nextLeaveIn, 30) / 30); prog.classList.toggle('tight', nextLeaveIn <= 3); }
+    document.getElementById('ringK').textContent = nextBus ? 'Next bus you can make' : 'Next option';
+    document.getElementById('ringV').textContent = nextLabel;
+    document.getElementById('ringD').textContent = nextDetail;
+
+    // Map markers: the next departure per line, blinking when live
+    const stopsXY = { BART: [150, 55], J: [150, 120], FS: [150, 185], G: [150, 250] };
+    const nextPer = {};
+    for (const r of rows) { if (!planning && r.dep - r.lead < nowMin) continue; if (!nextPer[r.line]) nextPer[r.line] = r; }
+    document.getElementById('mapMarkers').innerHTML = Object.entries(stopsXY).map(([ln, [x, y]]) => {
+      const r = nextPer[ln]; if (!r) return '';
+      const lv = ln === 'BART' ? live.bart[r.key] : live.act[r.key];
+      const label = lv ? (lv.min <= 0 ? 'now' : lv.min + ' min') : fmt(r.dep).t;
+      const mx = x + 228;
+      return `<rect x="${mx - 8}" y="${y - 12}" width="64" height="24" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+              <circle class="bus${lv ? ' live' : ''}" cx="${mx + 4}" cy="${y}" r="5"/>
+              <text class="eta" x="${mx + 14}" y="${y + 5}">${label}</text>`;
+    }).join('');
 
     // Live pill + feed status
     const anyLive = !!(live.bartAt || live.actAt);
-    const pill = document.getElementById('pill');
-    pill.classList.toggle('on', anyLive);
+    document.getElementById('pill').classList.toggle('on', anyLive);
     document.getElementById('pillText').textContent = anyLive ? 'Live' : 'Schedule';
     document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
     document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
   }
+
+  // ---------- Look picker ----------
+  function setLook(look, persist) {
+    const root = document.documentElement;
+    if (look === 'classic') delete root.dataset.look; else root.dataset.look = look;
+    if (look !== 'sky') clearSky();
+    document.querySelectorAll('#picker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.look === look)));
+    if (persist) { try { localStorage.setItem('look', look); } catch (e) {} }
+    flipOnce = true;
+    render();
+  }
+  document.getElementById('picker').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-look]'); if (b) setLook(b.dataset.look, true);
+  });
+  let savedLook = 'classic';
+  try { savedLook = localStorage.getItem('look') || 'classic'; } catch (e) {}
+  const urlLook = new URLSearchParams(location.search).get('look');
+  if (urlLook && document.querySelector(`#picker button[data-look="${urlLook}"]`)) savedLook = urlLook;
 
   // ---------- Boot ----------
   try { document.getElementById('actToken').value = localStorage.getItem('actToken') || ''; } catch (e) {}
@@ -620,7 +911,7 @@
     refreshLive();
   });
 
-  render();
+  setLook(savedLook, false);
   refreshLive();
   setInterval(render, 15000);
   setInterval(refreshLive, 45000);
