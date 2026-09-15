@@ -179,7 +179,7 @@
   /* Status strip */
   .status {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 0 20px;
     align-items: center;
     background: var(--accent);
@@ -272,6 +272,8 @@
 
   .live-settings { border-top: 1px solid var(--rule); padding-top: 14px; font-size: 13px; color: var(--muted); }
   .live-settings summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  .live-settings .notes { margin: 12px 0 16px; }
+  .live-settings .sub-h { margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
   .live-settings .field { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; }
   .live-settings input { flex: 1 1 240px; font: inherit; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--ink); }
   .live-settings button { font: inherit; font-weight: 600; padding: 7px 14px; border: 0; border-radius: 4px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
@@ -363,7 +365,7 @@
   :root[data-look="type"] .eyebrow { color: var(--muted); }
   :root[data-look="type"] .sub { font-size: 16px; }
   :root[data-look="type"] .status {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     background: var(--accent);
     color: var(--accent-ink);
     padding: 18px 28px;
@@ -371,7 +373,7 @@
     mask: radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px), radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
     -webkit-mask-composite: source-in; mask-composite: intersect;
   }
-  :root[data-look="type"] .status .clock { padding-right: 20px; border-right: 2px dashed rgba(255,255,255,0.35); font-weight: 800; letter-spacing: -0.02em; }
+  :root[data-look="type"] .status .clock { font-weight: 800; letter-spacing: -0.02em; }
   :root[data-look="type"] .status .msg .big { font-weight: 800; letter-spacing: -0.02em; font-size: 26px; }
   :root[data-look="type"] .board { border-width: 2px; border-color: var(--ink); box-shadow: 6px 6px 0 var(--rule); }
   :root[data-look="type"] .board-head { border-bottom-width: 2px; border-bottom-color: var(--ink); }
@@ -394,9 +396,7 @@
     h1 { font-size: 36px; }
     :root[data-look="type"] h1 { font-size: 46px; }
     .picker { overflow-x: auto; max-width: 100%; }
-    .status { grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 16px; }
-    .status .msg { grid-column: 1 / -1; }
-    :root[data-look="type"] .status .clock { border-right: 0; padding-right: 0; }
+    .status { padding: 12px 16px; }
     .board-head { display: none; }
     .row { grid-template-columns: 90px 40px 1fr; grid-template-rows: auto auto; gap: 6px 10px; padding-right: 12px; }
     .depart { font-size: 30px; }
@@ -435,8 +435,6 @@
       </div>
     </div>
     <h1>McGee Morning Board</h1>
-    <p class="sub">Transbay buses under 37 minutes from the closest stop on each line, and, if you want it, the next BART trains from North Berkeley. Departed trips fade out.</p>
-    <p class="sun-note" id="sunNote"></p>
   </header>
 
   <!-- Map look: schematic hero -->
@@ -484,10 +482,9 @@
     </svg>
   </div>
 
-  <div class="status" id="status" aria-live="polite">
+  <div class="status" id="status">
     <div class="clock" id="clock">--:--<small>am</small></div>
     <div class="pill" id="pill"><span class="dot"></span><span id="pillText">Schedule</span></div>
-    <div class="msg" id="msg">Checking the clock…</div>
   </div>
 
   <div class="banner" id="banner"></div>
@@ -502,7 +499,9 @@
     <div id="rows"></div>
   </div>
 
-  <div class="notes">
+  <details class="live-settings" id="liveSettings">
+    <summary>About</summary>
+    <div class="notes">
     <div>
       <h2>Stops</h2>
       <ul class="stops-list">
@@ -519,8 +518,7 @@
     </div>
   </div>
 
-  <details class="live-settings" id="liveSettings">
-    <summary>Live predictions</summary>
+    <h2 class="sub-h">Live predictions</h2>
     <p>BART real-time departures come from BART's public API. AC Transit needs a free personal token: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the token here. It stays in this browser only.</p>
     <div class="field">
       <input type="text" id="actToken" placeholder="AC Transit API token" autocomplete="off" spellcheck="false" aria-label="AC Transit API token">
@@ -703,8 +701,6 @@
     r.setProperty('--sky-strip', dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.45)');
     r.setProperty('--sky-rule', dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.09)');
     r.setProperty('--sky-next', dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.65)');
-    const rf = fmt(rise), sf = fmt(set);
-    document.getElementById('sunNote').textContent = `Berkeley sunrise ${rf.t}${rf.ampm} · sunset ${sf.t}${sf.ampm}. The sky behind this page follows the real one.`;
   }
   function clearSky() {
     const r = document.documentElement.style;
@@ -739,7 +735,6 @@
     const upcomingBart = !showBart ? [] : planning ? BART.slice(0, 4) : BART.filter(r => r.dep >= nowMin).slice(0, 4);
     const rows = [...BUS, ...upcomingBart].sort((a, b) => a.dep - b.dep);
     const nextBus = planning ? null : BUS.find(r => r.dep >= nowMin) || null;
-    const nextBart = planning ? null : upcomingBart[0] || null;
     const nextKey = nextBus ? nextBus.key : null;
 
     const rowsEl = document.getElementById('rows');
@@ -764,29 +759,6 @@
           <div class="arrive"><span class="t">${a.t}</span><span class="lbl">${esc(tr.arrLbl)}</span></div>
         </div>`;
     }).join('');
-
-    // Status strip: next departures, nothing more
-    const msg = document.getElementById('msg');
-    const bartLine = (r) => {
-      if (!r) return '';
-      const d = fmt(r.dep);
-      const lv = live.bart[r.key];
-      const when = lv ? `${lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min'}` : `${d.t}${d.ampm}`;
-      return `<span class="alt">BART ${when} from North Berkeley${r.direct ? ' (direct)' : ' (transfer at MacArthur)'}</span>`;
-    };
-    if (weekend) {
-      msg.innerHTML = `<strong>No transbay express today.</strong> First bus Monday is the <strong>5:50 J</strong> from Sacramento &amp; University.`;
-    } else if (planning) {
-      msg.innerHTML = `<strong>This morning's buses have all left.</strong> Tomorrow's first is the <strong>5:50 J</strong> from Sacramento &amp; University${showBart ? '; BART runs from 5:02' : ''}.`;
-    } else if (!nextBus) {
-      msg.innerHTML = `<span class="big">No more express buses this morning</span>The F runs every 20 to 30 minutes from Shattuck &amp; Allston.${bartLine(nextBart)}`;
-    } else {
-      const tr = nextBus;
-      const d = fmt(tr.dep);
-      const lv = live.act[tr.key];
-      const when = lv ? (lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min') : `${tr.approx ? '~' : ''}${d.t}${d.ampm}`;
-      msg.innerHTML = `<span class="big">Next bus: ${tr.line} ${when}</span>${esc(tr.stop)}, ${tr.dist}${bartLine(nextBart)}`;
-    }
 
     // Map markers: the next departure per line, blinking when live
     const stopsXY = { BART: [150, 55], J: [150, 120], FS: [150, 185], G: [150, 250] };
