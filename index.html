@@ -1,0 +1,628 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>McGee Morning Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F7F6F1;
+    --surface: #FFFFFF;
+    --ink: #1B1F1C;
+    --muted: #6B7570;
+    --rule: #E1E3DC;
+    --accent: #0B7A4B;
+    --accent-ink: #FFFFFF;
+    --next-bg: #E4F3EA;
+    --next-rule: #0B7A4B;
+    --gone: #A6ADA8;
+    --badge-ink: #FFFFFF;
+    --line-j: #0B7A4B;
+    --line-fs: #1D5F9E;
+    --line-g: #B8561B;
+    --line-bart: #0077B6;
+    --amber: #B8561B;
+    --live: #0B7A4B;
+    --font-display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+    --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101613;
+      --surface: #171F1A;
+      --ink: #EEF1EC;
+      --muted: #97A29B;
+      --rule: #263029;
+      --accent: #3FBF83;
+      --accent-ink: #0B1A12;
+      --next-bg: #16302A;
+      --next-rule: #3FBF83;
+      --gone: #566159;
+      --badge-ink: #0B1A12;
+      --line-j: #3FBF83;
+      --line-fs: #6FB0EA;
+      --line-g: #E8965A;
+      --line-bart: #5CC4F5;
+      --amber: #E8965A;
+      --live: #3FBF83;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101613;
+    --surface: #171F1A;
+    --ink: #EEF1EC;
+    --muted: #97A29B;
+    --rule: #263029;
+    --accent: #3FBF83;
+    --accent-ink: #0B1A12;
+    --next-bg: #16302A;
+    --next-rule: #3FBF83;
+    --gone: #566159;
+    --badge-ink: #0B1A12;
+    --line-j: #3FBF83;
+    --line-fs: #6FB0EA;
+    --line-g: #E8965A;
+    --line-bart: #5CC4F5;
+    --amber: #E8965A;
+    --live: #3FBF83;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 4px; }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: 0.005em;
+    text-wrap: balance;
+  }
+  .sub { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+
+  /* Live status strip */
+  .status {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0 20px;
+    align-items: center;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 16px 20px;
+    border-radius: 6px;
+  }
+  .status .clock {
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .status .clock small { font-size: 16px; font-weight: 600; margin-left: 4px; }
+  .status .msg { font-size: 15px; line-height: 1.4; }
+  .status .msg strong { font-weight: 600; }
+  .status .msg .big {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .status .msg .alt { display: block; opacity: 0.85; font-size: 13px; margin-top: 2px; }
+  .pill {
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    opacity: 0.9;
+    white-space: nowrap;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.on .dot { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* Board */
+  .board {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .board-head, .row {
+    display: grid;
+    grid-template-columns: 96px 52px 1fr 108px 64px;
+    gap: 14px;
+    align-items: center;
+    padding: 0 16px;
+  }
+  .board-head {
+    padding-top: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .board-head .r { text-align: right; }
+  .row {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+    border-left: 4px solid transparent;
+    padding-left: 12px;
+    transition: background 200ms ease, opacity 200ms ease;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row.next { background: var(--next-bg); border-left-color: var(--next-rule); }
+  .row.gone { opacity: 0.42; }
+  .row.gone .depart { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--gone); }
+
+  .depart {
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .depart .approx { font-size: 18px; color: var(--muted); vertical-align: top; margin-right: 1px; }
+  .depart .ampm { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+  .depart .livemin {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--live);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  .depart .livemin.late { color: var(--amber); }
+
+  .line {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--badge-ink);
+    letter-spacing: 0.02em;
+  }
+  .line.J { background: var(--line-j); }
+  .line.FS { background: var(--line-fs); }
+  .line.G { background: var(--line-g); }
+  .line.BART { background: var(--line-bart); border-radius: 8px; font-size: 14px; letter-spacing: 0.04em; }
+
+  .stop { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .stop .name { font-weight: 600; }
+  .stop .meta { color: var(--muted); font-size: 13px; }
+  .stop .meta b { font-weight: 600; color: var(--ink); }
+  .row.next .stop .meta .leave { color: var(--accent); font-weight: 600; }
+  .row.next .stop .meta .leave.tight { color: var(--amber); }
+
+  .arrive { text-align: right; font-variant-numeric: tabular-nums; }
+  .arrive .t { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1; }
+  .arrive .lbl { display: block; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 3px; white-space: nowrap; }
+  .ride { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+  .ride b { color: var(--ink); font-weight: 600; font-size: 16px; }
+
+  .banner {
+    display: none;
+    padding: 12px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .banner.show { display: block; }
+
+  .notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .notes h2 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .notes p { margin: 0 0 6px; }
+  .notes a, .live-settings a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .notes a:focus-visible, .live-settings a:focus-visible, .live-settings button:focus-visible, .live-settings input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .stops-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .stops-list li { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: baseline; }
+  .stops-list .dot { width: 22px; height: 22px; border-radius: 50%; font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--badge-ink); display: inline-grid; place-items: center; }
+  .stops-list .dot.BART { border-radius: 5px; font-size: 9px; }
+
+  .live-settings {
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .live-settings summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  .live-settings .field { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; }
+  .live-settings input {
+    flex: 1 1 240px;
+    font: inherit;
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .live-settings button {
+    font: inherit;
+    font-weight: 600;
+    padding: 7px 14px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+  .live-settings .feed { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin-top: 8px; }
+  .live-settings .feed b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 560px) {
+    .page { padding: 20px 12px 40px; gap: 16px; }
+    h1 { font-size: 36px; }
+    .status { grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 16px; }
+    .status .msg { grid-column: 1 / -1; }
+    .board-head { display: none; }
+    .row {
+      grid-template-columns: 78px 40px 1fr;
+      grid-template-rows: auto auto;
+      gap: 6px 10px;
+      padding-right: 12px;
+    }
+    .depart { font-size: 30px; }
+    .line { width: 38px; height: 38px; font-size: 19px; }
+    .line.BART { font-size: 12px; }
+    .stop { grid-column: 3; }
+    .arrive { grid-column: 3; grid-row: 2; display: flex; gap: 8px; align-items: baseline; justify-self: start; text-align: left; }
+    .arrive .t { font-size: 20px; }
+    .arrive .lbl { margin: 0; }
+    .ride { grid-column: 3; grid-row: 2; justify-self: end; align-self: baseline; }
+    .notes { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .row { transition: none; }
+    .pill.on .dot { animation: none; }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower</div>
+    <h1>McGee Morning Board</h1>
+    <p class="sub">Transbay buses under 37 minutes from the closest stop on each line, plus the next BART trains from North Berkeley. Past trips fade out; the next one you can still make is highlighted.</p>
+  </header>
+
+  <div class="status" id="status" aria-live="polite">
+    <div class="clock" id="clock">--:--<small>am</small></div>
+    <div class="pill" id="pill"><span class="dot"></span><span id="pillText">Schedule</span></div>
+    <div class="msg" id="msg">Checking the clock…</div>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="board" role="table" aria-label="Weekday morning departures">
+    <div class="board-head" role="row">
+      <div>Departs</div>
+      <div>Line</div>
+      <div>Stop</div>
+      <div class="r">Arrives</div>
+      <div class="r">Ride</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="notes">
+    <div>
+      <h2>Stops</h2>
+      <ul class="stops-list">
+        <li><span class="dot line J">J</span><span><b>Sacramento St &amp; University Ave</b> · 0.5 mi. First stop on the line, so you'll always get a seat.</span></li>
+        <li><span class="dot line FS">FS</span><span><b>Shattuck Ave &amp; Cedar St</b> · 0.5 mi. Only two trips a morning; University &amp; MLK is the same bus three minutes later.</span></li>
+        <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Not a printed timepoint, so the ~ times are estimated from the Solano and University timepoints. Give it two extra minutes.</span></li>
+        <li><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line direct to Montgomery every 20 min; in between, an Orange train with a cross-platform transfer to Yellow at MacArthur takes the same 27 min. Montgomery to the tower is a 5-minute walk.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h2>About these times</h2>
+      <p>"Leave by" assumes an easy 10 mph ride plus about five minutes to lock up and wait. J, FS and G are express lines with no local riders and no weekend service.</p>
+      <p>Schedules: <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a> (Dec 2023), <a href="https://www.actransit.org/sites/default/files/timetable_files/FS-2021_12_05.pdf">FS</a> (Dec 2021), <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> (Feb 2026), all posted as current on <a href="https://www.actransit.org/transbay">actransit.org</a>; BART times from the <a href="https://www.bart.gov/schedules">BART schedule</a> for North Berkeley → Montgomery.</p>
+    </div>
+  </div>
+
+  <details class="live-settings" id="liveSettings">
+    <summary>Live predictions</summary>
+    <p>When this page is hosted outside claude.ai, it pulls real-time departures from BART's public API automatically. AC Transit needs a free personal token: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the token here. It stays in this browser only.</p>
+    <div class="field">
+      <input type="text" id="actToken" placeholder="AC Transit API token" autocomplete="off" spellcheck="false" aria-label="AC Transit API token">
+      <button type="button" id="saveToken">Save</button>
+    </div>
+    <div class="feed">
+      <b>BART</b><span id="bartFeed">Not fetched yet</span>
+      <b>AC Transit</b><span id="actFeed">No token saved</span>
+    </div>
+  </details>
+</div>
+
+<script>
+  // ---------- Schedule data ----------
+  // dep/arr: minutes after midnight. lead: minutes before departure to leave the house.
+  const BUS = [
+    { key:'J-350',  dep: 5*60+50, line: 'J',  stop: 'Sacramento & University', dist: '0.5 mi', lead: 8,  arr: 6*60+24, approx: false, stpid: '792', arrLbl: 'Salesforce TC' },
+    { key:'FS-377', dep: 6*60+17, line: 'FS', stop: 'Shattuck & Cedar',        dist: '0.5 mi', lead: 8,  arr: 6*60+50, approx: false, stpid: '652', arrLbl: 'Salesforce TC' },
+    { key:'G-443',  dep: 7*60+23, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 7*60+50, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+    { key:'G-477',  dep: 7*60+57, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+24, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+    { key:'FS-479', dep: 7*60+59, line: 'FS', stop: 'Shattuck & Cedar',        dist: '0.5 mi', lead: 8,  arr: 8*60+30, approx: false, stpid: '652', arrLbl: 'Salesforce TC' },
+    { key:'G-507',  dep: 8*60+27, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+54, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+    { key:'G-536',  dep: 8*60+56, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+23, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+    { key:'G-558',  dep: 9*60+18, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+45, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+  ];
+  // BART weekday pattern from North Berkeley: Red direct at :02 :22 :42, Orange with a MacArthur transfer at :14 :34 :54. 27 min to Montgomery.
+  const BART = [];
+  for (let h = 5; h <= 9; h++) {
+    for (const [m, direct] of [[2,true],[14,false],[22,true],[34,false],[42,true],[54,false]]) {
+      const dep = h*60+m;
+      BART.push({ key:'BART-'+dep, dep, line: 'BART', stop: 'North Berkeley BART', dist: '0.35 mi', lead: 7, arr: dep+27, approx: false,
+                  direct, arrLbl: 'Montgomery · 5 min walk', sub: direct ? 'Red line · direct' : 'Orange · transfer at MacArthur' });
+    }
+  }
+  const BART_KEY = 'MW9S-E7SL-26DU-VV8V';
+  const BART_ETD = 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=NBRK&key=' + BART_KEY + '&json=y';
+  const ACT_PRED = 'https://api.actransit.org/transit/actrealtime/prediction?stpid=792,652,625&rt=J,FS,G&top=20&tmres=m&token=';
+
+  // ---------- Helpers ----------
+  const fmt = (m) => {
+    m = ((m % 1440) + 1440) % 1440;
+    const h = Math.floor(m / 60), mm = String(m % 60).padStart(2, '0');
+    return { t: `${((h + 11) % 12) + 1}:${mm}`, ampm: h < 12 ? 'am' : 'pm' };
+  };
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const nowMinutes = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
+
+  // live[key] = { min: minutes from now, late: bool }
+  const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null };
+
+  // ---------- Live feeds ----------
+  function attachLive(rows, estimates, store, tolerance) {
+    // estimates: [{type, min, late}] ; match each to the closest scheduled row of the same type within tolerance
+    const now = nowMinutes();
+    for (const k in store) delete store[k];
+    for (const e of estimates) {
+      const predicted = now + e.min;
+      let best = null, bestD = tolerance + 1;
+      for (const r of rows) {
+        if (e.type && r.type !== e.type) continue;
+        const d = Math.abs(r.dep - predicted);
+        if (d < bestD && !(store[r.key])) { best = r; bestD = d; }
+      }
+      if (best) store[best.key] = { min: e.min, late: e.late || predicted - best.dep >= 3 };
+    }
+  }
+
+  async function fetchBart() {
+    try {
+      const res = await fetch(BART_ETD, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const st = (data.root.station || [])[0] || {};
+      const ests = [];
+      for (const etd of (st.etd || [])) {
+        for (const est of (etd.estimate || [])) {
+          const color = (est.color || '').toUpperCase();
+          const min = est.minutes === 'Leaving' ? 0 : parseInt(est.minutes, 10);
+          if (Number.isNaN(min)) continue;
+          if (color === 'RED') ests.push({ type: 'direct', min, late: Number(est.delay) >= 180 });
+          else if (color === 'ORANGE' && etd.abbreviation === 'BERY') ests.push({ type: 'xfer', min, late: Number(est.delay) >= 180 });
+        }
+      }
+      attachLive(BART.map(r => ({ ...r, type: r.direct ? 'direct' : 'xfer' })), ests, live.bart, 9);
+      live.bartAt = new Date(); live.bartErr = null;
+    } catch (err) {
+      live.bartErr = err && err.message ? err.message : 'blocked';
+      live.bartAt = null;
+      for (const k in live.bart) delete live.bart[k];
+    }
+  }
+
+  async function fetchAct() {
+    let token = '';
+    try { token = localStorage.getItem('actToken') || ''; } catch (e) {}
+    if (!token) { live.actErr = 'no-token'; live.actAt = null; return; }
+    try {
+      const res = await fetch(ACT_PRED + encodeURIComponent(token), { cache: 'no-store' });
+      if (res.status === 401) throw new Error('Token rejected');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const prds = ((data['bustime-response'] || {}).prd) || [];
+      const now = new Date();
+      const ests = [];
+      for (const p of prds) {
+        const dir = ((p.rtdir || '') + ' ' + (p.des || '')).toLowerCase();
+        if (dir && !/san francisco|transbay|salesforce|westbound/.test(dir)) continue;
+        let min = parseInt(p.prdctdn, 10);
+        if (Number.isNaN(min)) {
+          if (/due/i.test(p.prdctdn || '')) min = 0;
+          else if (p.prdtm) {
+            const m = /^(\d{4})(\d{2})(\d{2}) (\d{2}):(\d{2})/.exec(p.prdtm);
+            if (m) min = Math.round((new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) - now) / 60000);
+          }
+        }
+        if (Number.isNaN(min) || min === undefined) continue;
+        ests.push({ type: p.rt + '@' + p.stpid, min, late: !!p.dly });
+      }
+      attachLive(BUS.map(r => ({ ...r, type: r.line + '@' + r.stpid })), ests, live.act, 15);
+      live.actAt = new Date(); live.actErr = null;
+    } catch (err) {
+      live.actErr = err && err.message ? err.message : 'blocked';
+      live.actAt = null;
+      for (const k in live.act) delete live.act[k];
+    }
+  }
+
+  async function refreshLive() {
+    await Promise.all([fetchBart(), fetchAct()]);
+    render();
+  }
+
+  // ---------- Render ----------
+  function feedText(at, err, noTokenText) {
+    if (at) return 'Live · updated ' + at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (err === 'no-token') return noTokenText;
+    return 'Schedule only (' + (err && err !== 'blocked' && !/fetch/i.test(err) ? err : 'this host blocks outside requests') + ')';
+  }
+
+  function render() {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const day = now.getDay();
+    const weekend = day === 0 || day === 6;
+    const planning = weekend || nowMin >= 10 * 60;
+
+    const c = fmt(nowMin);
+    document.getElementById('clock').innerHTML = `${c.t}<small>${c.ampm}</small>`;
+
+    const banner = document.getElementById('banner');
+    if (weekend) {
+      banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
+    }
+    banner.classList.toggle('show', weekend);
+
+    // Which rows to show: all buses; BART only the next few (or the first few of the morning when planning).
+    const upcomingBart = planning ? BART.slice(0, 4) : BART.filter(r => r.dep - r.lead >= nowMin).slice(0, 4);
+    const rows = [...BUS, ...upcomingBart].sort((a, b) => a.dep - b.dep);
+
+    const nextBus = planning ? null : BUS.find(r => r.dep - r.lead >= nowMin) || null;
+    const nextBart = planning ? null : upcomingBart[0] || null;
+    const nextKey = nextBus ? nextBus.key : null;
+
+    document.getElementById('rows').innerHTML = rows.map((tr) => {
+      const d = fmt(tr.dep), a = fmt(tr.arr);
+      const gone = !planning && tr.dep - tr.lead < nowMin;
+      const isNext = tr.key === nextKey;
+      const lv = tr.line === 'BART' ? live.bart[tr.key] : live.act[tr.key];
+      const leaveIn = (lv ? nowMin + lv.min : tr.dep) - tr.lead - nowMin;
+      let leave = '';
+      if (!planning && !gone) {
+        if (isNext || tr.line === 'BART') {
+          const tight = leaveIn <= 3;
+          leave = leaveIn <= 0 ? `<span class="leave tight">Leave now</span>` : `<span class="leave${tight ? ' tight' : ''}">Leave in ${leaveIn} min</span>`;
+        } else {
+          const l = fmt(tr.dep - tr.lead);
+          leave = `<span class="leave">Leave by ${l.t}</span>`;
+        }
+      } else if (planning) {
+        const l = fmt(tr.dep - tr.lead);
+        leave = `<span class="leave">Leave by ${l.t}</span>`;
+      }
+      const liveMark = lv ? `<span class="livemin${lv.late ? ' late' : ''}">${lv.min <= 0 ? 'Leaving now' : 'Live · ' + lv.min + ' min'}${lv.late ? ' · late' : ''}</span>` : '';
+      const metaBits = [`<b>${tr.dist}</b>`];
+      if (tr.sub) metaBits.push(esc(tr.sub));
+      if (leave) metaBits.push(leave);
+      return `
+        <div class="row${isNext ? ' next' : ''}${gone ? ' gone' : ''}" role="row">
+          <div class="depart">${tr.approx ? '<span class="approx">~</span>' : ''}${d.t}<span class="ampm">${d.ampm}</span>${liveMark}</div>
+          <div><span class="line ${tr.line}">${tr.line}</span></div>
+          <div class="stop">
+            <span class="name">${esc(tr.stop)}</span>
+            <span class="meta">${metaBits.join(' · ')}</span>
+          </div>
+          <div class="arrive"><span class="t">${a.t}</span><span class="lbl">${esc(tr.arrLbl)}</span></div>
+          <div class="ride"><b>${tr.arr - tr.dep}</b> min</div>
+        </div>`;
+    }).join('');
+
+    // Status strip
+    const msg = document.getElementById('msg');
+    const bartLine = (r) => {
+      if (!r) return '';
+      const d = fmt(r.dep), a = fmt(r.arr);
+      const lv = live.bart[r.key];
+      const when = lv ? `${lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min'}` : `at ${d.t}`;
+      return `<span class="alt">Or BART ${when}${r.direct ? ' (direct)' : ' (transfer)'} · Montgomery ${a.t}${a.ampm}</span>`;
+    };
+    if (weekend) {
+      msg.innerHTML = `<strong>No transbay express today.</strong> First bus Monday is the <strong>5:50 J</strong> from Sacramento &amp; University.`;
+    } else if (planning) {
+      msg.innerHTML = `<strong>This morning's buses have all left.</strong> Tomorrow's first is the <strong>5:50 J</strong> from Sacramento &amp; University; BART runs from 5:02.`;
+    } else if (!nextBus) {
+      msg.innerHTML = `<span class="big">You've missed the last express bus.</span>The F runs every 20 to 30 minutes from Shattuck &amp; Allston, about 41 minutes to the Transit Center.${bartLine(nextBart)}`;
+    } else {
+      const tr = nextBus;
+      const d = fmt(tr.dep), a = fmt(tr.arr);
+      const lv = live.act[tr.key];
+      const leaveIn = (lv ? nowMin + lv.min : tr.dep) - tr.lead - nowMin;
+      const when = leaveIn <= 0 ? 'Leave now' : `Leave in ${leaveIn} min`;
+      msg.innerHTML = `<span class="big">${when} for the ${tr.approx && !lv ? '~' : ''}${lv ? fmt(nowMin + lv.min).t : d.t} ${tr.line}</span>${esc(tr.stop)}, ${tr.dist} away · arrives ${a.t}${a.ampm}${bartLine(nextBart)}`;
+    }
+
+    // Live pill + feed status
+    const anyLive = !!(live.bartAt || live.actAt);
+    const pill = document.getElementById('pill');
+    pill.classList.toggle('on', anyLive);
+    document.getElementById('pillText').textContent = anyLive ? 'Live' : 'Schedule';
+    document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
+    document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
+  }
+
+  // ---------- Boot ----------
+  try { document.getElementById('actToken').value = localStorage.getItem('actToken') || ''; } catch (e) {}
+  document.getElementById('saveToken').addEventListener('click', () => {
+    const v = document.getElementById('actToken').value.trim();
+    try { if (v) localStorage.setItem('actToken', v); else localStorage.removeItem('actToken'); } catch (e) {}
+    refreshLive();
+  });
+
+  render();
+  refreshLive();
+  setInterval(render, 15000);
+  setInterval(refreshLive, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLive(); });
+</script>
