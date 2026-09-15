@@ -138,6 +138,7 @@
 
   header { display: flex; flex-direction: column; gap: 6px; }
   .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
   .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
   h1 {
     margin: 0;
@@ -206,7 +207,7 @@
   .board { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
   .board-head, .row {
     display: grid;
-    grid-template-columns: 112px 52px 1fr 112px 64px;
+    grid-template-columns: 112px 52px 1fr 130px;
     gap: 14px;
     align-items: center;
     padding: 0 16px;
@@ -249,8 +250,6 @@
   .stop .name { font-weight: 600; }
   .stop .meta { color: var(--muted); font-size: 13px; }
   .stop .meta b { font-weight: 600; color: var(--ink); }
-  .row.next .stop .meta .leave { color: var(--accent); font-weight: 600; }
-  .row.next .stop .meta .leave.tight { color: var(--amber); }
 
   .arrive { text-align: right; font-variant-numeric: tabular-nums; }
   .arrive .t { font-family: var(--font-digits); font-size: 24px; font-weight: 600; line-height: 1; }
@@ -279,10 +278,11 @@
   .live-settings .feed { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin-top: 8px; }
   .live-settings .feed b { color: var(--ink); font-weight: 600; }
 
+  :root[data-mode="bus"] .bart-only { display: none; }
+
   /* Look-specific heroes (hidden unless that look is on) */
-  .hero-map, .hero-count { display: none; }
+  .hero-map { display: none; }
   :root[data-look="map"] .hero-map { display: block; }
-  :root[data-look="countdown"] .hero-count { display: grid; }
 
   /* ===================== Split-flap specifics ===================== */
   :root[data-look="flap"] .page { max-width: 820px; }
@@ -357,33 +357,6 @@
   :root[data-look="sky"] .sun-note { display: block; }
   :root[data-look="sky"] .picker button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 
-  /* ===================== Countdown specifics ===================== */
-  .hero-count {
-    grid-template-columns: 200px 1fr;
-    gap: 24px;
-    align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-  }
-  .ring { position: relative; width: 200px; height: 200px; }
-  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .ring .track { fill: none; stroke: var(--rule); stroke-width: 12; }
-  .ring .prog { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 900ms ease; }
-  .ring .prog.tight { stroke: var(--amber); }
-  .ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-  .ring .num { font-family: var(--font-digits); font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-  .ring .unit { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
-  .hero-count .what { display: flex; flex-direction: column; gap: 4px; }
-  .hero-count .what .k { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-  .hero-count .what .v { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.05; text-wrap: balance; }
-  .hero-count .what .d { color: var(--muted); font-size: 14px; }
-  :root[data-look="countdown"] .status { display: none; }
-  :root[data-look="countdown"] .depart { font-size: 26px; }
-  :root[data-look="countdown"] .row { padding-top: 8px; padding-bottom: 8px; }
-  :root[data-look="countdown"] .line { width: 36px; height: 36px; font-size: 18px; }
-  :root[data-look="countdown"] .arrive .t { font-size: 20px; }
 
   /* ===================== Typographic specifics ===================== */
   :root[data-look="type"] h1 { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 0.95; font-variation-settings: "opsz" 96; }
@@ -433,17 +406,13 @@
     .arrive { grid-column: 3; grid-row: 2; display: flex; gap: 8px; align-items: baseline; justify-self: start; text-align: left; }
     .arrive .t { font-size: 20px; }
     .arrive .lbl { margin: 0; }
-    .ride { grid-column: 3; grid-row: 2; justify-self: end; align-self: baseline; }
     .notes { grid-template-columns: 1fr; }
-    .hero-count { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .hero-count .what .v { font-size: 28px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .row, body { transition: none; }
     .pill.on .dot, .hero-map .bus.live { animation: none; }
     :root[data-look="flap"] .flip .ch { animation: none; }
     :root[data-look="type"] .row.gone { animation: none; }
-    .ring .prog { transition: none; }
   }
 </style>
 
@@ -451,17 +420,22 @@
   <header>
     <div class="topline">
       <div class="eyebrow">Weekday mornings · North Berkeley → Salesforce Tower</div>
-      <div class="picker" role="group" aria-label="Choose a look" id="picker">
+      <div class="controls">
+        <div class="picker" role="group" aria-label="What to show" id="modePicker">
+          <button type="button" data-mode="bus">Bus only</button>
+          <button type="button" data-mode="all">Bus + BART</button>
+        </div>
+        <div class="picker" role="group" aria-label="Choose a look" id="picker">
         <button type="button" data-look="classic">Classic</button>
         <button type="button" data-look="flap">Split-flap</button>
         <button type="button" data-look="map">Map</button>
         <button type="button" data-look="sky">Sky</button>
-        <button type="button" data-look="countdown">Countdown</button>
         <button type="button" data-look="type">Type</button>
+        </div>
       </div>
     </div>
     <h1>McGee Morning Board</h1>
-    <p class="sub">Transbay buses under 37 minutes from the closest stop on each line, plus the next BART trains from North Berkeley. Past trips fade out; the next one you can still make is highlighted.</p>
+    <p class="sub">Transbay buses under 37 minutes from the closest stop on each line, and, if you want it, the next BART trains from North Berkeley. Departed trips fade out.</p>
     <p class="sun-note" id="sunNote"></p>
   </header>
 
@@ -471,7 +445,7 @@
       <path class="water" d="M400 0 C 380 70, 380 140, 410 200 C 430 240, 460 280, 500 300 L 590 300 C 550 240, 530 170, 550 100 C 560 60, 575 30, 590 0 Z"/>
       <text class="lbl small" x="485" y="150" text-anchor="middle">San Francisco Bay</text>
       <!-- BART: Transbay Tube -->
-      <path class="route BART" d="M150 55 H 290 C 340 55, 360 110, 400 130 H 520 C 610 130, 640 150, 690 150"/>
+      <g class="bart-only"><path class="route BART" d="M150 55 H 290 C 340 55, 360 110, 400 130 H 520 C 610 130, 640 150, 690 150"/></g>
       <!-- J: Sacramento St, Ashby, Emeryville, I-80 -->
       <path class="route J" d="M150 120 H 240 C 280 120, 290 175, 330 180 H 380 C 430 180, 440 160, 480 158 H 560 C 620 158, 650 152, 690 150"/>
       <!-- FS: University Ave to I-80 -->
@@ -479,7 +453,7 @@
       <!-- G: San Pablo, University Ave to I-80 -->
       <path class="route G" d="M150 250 H 260 C 320 250, 320 152, 380 152 H 520 C 610 152, 645 151, 690 150"/>
       <!-- Home + bike legs -->
-      <line x1="50" y1="150" x2="150" y2="55" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
+      <line class="bart-only" x1="50" y1="150" x2="150" y2="55" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
       <line x1="50" y1="150" x2="150" y2="120" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
       <line x1="50" y1="150" x2="150" y2="185" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
       <line x1="50" y1="150" x2="150" y2="250" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5"/>
@@ -487,9 +461,11 @@
       <text class="lbl" x="50" y="175" text-anchor="middle">Home</text>
       <text class="lbl small" x="50" y="189" text-anchor="middle">bike</text>
       <!-- Stops -->
-      <circle class="station" cx="150" cy="55" r="7"/>
-      <text class="lbl" x="150" y="40">North Berkeley BART</text>
-      <text class="lbl small" x="150" y="76">0.35 mi · Red direct / Orange + transfer</text>
+      <g class="bart-only">
+        <circle class="station" cx="150" cy="55" r="7"/>
+        <text class="lbl" x="150" y="40">North Berkeley BART</text>
+        <text class="lbl small" x="150" y="76">0.35 mi · Red direct / Orange + transfer</text>
+      </g>
       <circle class="station" cx="150" cy="120" r="7"/>
       <text class="lbl" x="150" y="105">J · Sacramento &amp; University</text>
       <text class="lbl small" x="150" y="141">0.5 mi · via Ashby &amp; Emeryville</text>
@@ -502,26 +478,10 @@
       <!-- Hub -->
       <rect class="hub" x="682" y="142" width="16" height="16" rx="3"/>
       <text class="lbl" x="752" y="180" text-anchor="end">Salesforce Transit Center</text>
-      <text class="lbl small" x="752" y="194" text-anchor="end">Montgomery BART · 5 min walk</text>
+      <text class="lbl small bart-only" x="752" y="194" text-anchor="end">Montgomery BART · 5 min walk</text>
       <!-- Next departure per line, filled by JS -->
       <g id="mapMarkers"></g>
     </svg>
-  </div>
-
-  <!-- Countdown look: hero ring -->
-  <div class="hero-count" aria-live="polite">
-    <div class="ring">
-      <svg viewBox="0 0 200 200" aria-hidden="true">
-        <circle class="track" cx="100" cy="100" r="88"/>
-        <circle class="prog" id="ringProg" cx="100" cy="100" r="88" stroke-dasharray="552.9" stroke-dashoffset="0"/>
-      </svg>
-      <div class="center"><div class="num" id="ringNum">--</div><div class="unit" id="ringUnit">min to leave</div></div>
-    </div>
-    <div class="what">
-      <div class="k" id="ringK">Next bus</div>
-      <div class="v" id="ringV">Checking the clock…</div>
-      <div class="d" id="ringD"></div>
-    </div>
   </div>
 
   <div class="status" id="status" aria-live="polite">
@@ -538,7 +498,6 @@
       <div>Line</div>
       <div>Stop</div>
       <div class="r">Arrives</div>
-      <div class="r">Ride</div>
     </div>
     <div id="rows"></div>
   </div>
@@ -550,12 +509,12 @@
         <li><span class="dot line J">J</span><span><b>Sacramento St &amp; University Ave</b> · 0.5 mi. First stop on the line, so you'll always get a seat.</span></li>
         <li><span class="dot line FS">FS</span><span><b>Shattuck Ave &amp; Cedar St</b> · 0.5 mi. Only two trips a morning; University &amp; MLK is the same bus three minutes later.</span></li>
         <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Not a printed timepoint, so the ~ times are estimated from the Solano and University timepoints. Give it two extra minutes.</span></li>
-        <li><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line direct to Montgomery every 20 min; in between, an Orange train with a cross-platform transfer to Yellow at MacArthur takes the same 27 min. Montgomery to the tower is a 5-minute walk.</span></li>
+        <li class="bart-only"><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line direct to Montgomery every 20 min; in between, an Orange train with a cross-platform transfer to Yellow at MacArthur takes the same 27 min. Montgomery to the tower is a 5-minute walk.</span></li>
       </ul>
     </div>
     <div>
       <h2>About these times</h2>
-      <p>"Leave by" assumes an easy 10 mph ride plus about five minutes to lock up and wait. J, FS and G are express lines with no local riders and no weekend service.</p>
+      <p>J, FS and G are express lines with no local riders and no weekend service. Distances are straight-line from home.</p>
       <p>Schedules: <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a> (Dec 2023), <a href="https://www.actransit.org/sites/default/files/timetable_files/FS-2021_12_05.pdf">FS</a> (Dec 2021), <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> (Feb 2026), all posted as current on <a href="https://www.actransit.org/transbay">actransit.org</a>; BART times from the <a href="https://www.bart.gov/schedules">BART schedule</a> for North Berkeley → Montgomery.</p>
     </div>
   </div>
@@ -776,9 +735,10 @@
     if (weekend) banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
     banner.classList.toggle('show', weekend);
 
-    const upcomingBart = planning ? BART.slice(0, 4) : BART.filter(r => r.dep - r.lead >= nowMin).slice(0, 4);
+    const showBart = document.documentElement.dataset.mode !== 'bus';
+    const upcomingBart = !showBart ? [] : planning ? BART.slice(0, 4) : BART.filter(r => r.dep >= nowMin).slice(0, 4);
     const rows = [...BUS, ...upcomingBart].sort((a, b) => a.dep - b.dep);
-    const nextBus = planning ? null : BUS.find(r => r.dep - r.lead >= nowMin) || null;
+    const nextBus = planning ? null : BUS.find(r => r.dep >= nowMin) || null;
     const nextBart = planning ? null : upcomingBart[0] || null;
     const nextKey = nextBus ? nextBus.key : null;
 
@@ -787,27 +747,12 @@
     flipOnce = false;
     rowsEl.innerHTML = rows.map((tr, ri) => {
       const d = fmt(tr.dep), a = fmt(tr.arr);
-      const gone = !planning && tr.dep - tr.lead < nowMin;
+      const gone = !planning && tr.dep < nowMin;
       const isNext = tr.key === nextKey;
       const lv = tr.line === 'BART' ? live.bart[tr.key] : live.act[tr.key];
-      const leaveIn = (lv ? nowMin + lv.min : tr.dep) - tr.lead - nowMin;
-      let leave = '';
-      if (!planning && !gone) {
-        if (isNext || tr.line === 'BART') {
-          const tight = leaveIn <= 3;
-          leave = leaveIn <= 0 ? `<span class="leave tight">Leave now</span>` : `<span class="leave${tight ? ' tight' : ''}">Leave in ${leaveIn} min</span>`;
-        } else {
-          const l = fmt(tr.dep - tr.lead);
-          leave = `<span class="leave">Leave by ${l.t}</span>`;
-        }
-      } else if (planning) {
-        const l = fmt(tr.dep - tr.lead);
-        leave = `<span class="leave">Leave by ${l.t}</span>`;
-      }
       const liveMark = lv ? `<span class="livemin${lv.late ? ' late' : ''}">${lv.min <= 0 ? 'Leaving now' : 'Live · ' + lv.min + ' min'}${lv.late ? ' · late' : ''}</span>` : '';
       const metaBits = [`<b>${tr.dist}</b>`];
       if (tr.sub) metaBits.push(esc(tr.sub));
-      if (leave) metaBits.push(leave);
       return `
         <div class="row${isNext ? ' next' : ''}${gone ? ' gone' : ''}" role="row">
           <div class="depart"><span class="time">${tr.approx ? '<span class="approx">~</span>' : ''}${chars(d.t, ri)}<span class="ampm">${d.ampm}</span></span>${liveMark}</div>
@@ -817,56 +762,36 @@
             <span class="meta">${metaBits.join(' · ')}</span>
           </div>
           <div class="arrive"><span class="t">${a.t}</span><span class="lbl">${esc(tr.arrLbl)}</span></div>
-          <div class="ride"><b>${tr.arr - tr.dep}</b> min</div>
         </div>`;
     }).join('');
 
-    // Status strip
+    // Status strip: next departures, nothing more
     const msg = document.getElementById('msg');
     const bartLine = (r) => {
       if (!r) return '';
-      const d = fmt(r.dep), a = fmt(r.arr);
+      const d = fmt(r.dep);
       const lv = live.bart[r.key];
-      const when = lv ? `${lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min'}` : `at ${d.t}`;
-      return `<span class="alt">Or BART ${when}${r.direct ? ' (direct)' : ' (transfer)'} · Montgomery ${a.t}${a.ampm}</span>`;
+      const when = lv ? `${lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min'}` : `${d.t}${d.ampm}`;
+      return `<span class="alt">BART ${when} from North Berkeley${r.direct ? ' (direct)' : ' (transfer at MacArthur)'}</span>`;
     };
-    let nextLeaveIn = null, nextLabel = '', nextDetail = '';
     if (weekend) {
       msg.innerHTML = `<strong>No transbay express today.</strong> First bus Monday is the <strong>5:50 J</strong> from Sacramento &amp; University.`;
-      nextLabel = 'No express buses today'; nextDetail = 'First bus Monday is the 5:50 J.';
     } else if (planning) {
-      msg.innerHTML = `<strong>This morning's buses have all left.</strong> Tomorrow's first is the <strong>5:50 J</strong> from Sacramento &amp; University; BART runs from 5:02.`;
-      nextLabel = 'Done for today'; nextDetail = "Tomorrow's first bus is the 5:50 J; BART runs from 5:02.";
+      msg.innerHTML = `<strong>This morning's buses have all left.</strong> Tomorrow's first is the <strong>5:50 J</strong> from Sacramento &amp; University${showBart ? '; BART runs from 5:02' : ''}.`;
     } else if (!nextBus) {
-      msg.innerHTML = `<span class="big">You've missed the last express bus.</span>The F runs every 20 to 30 minutes from Shattuck &amp; Allston, about 41 minutes to the Transit Center.${bartLine(nextBart)}`;
-      if (nextBart) { nextLeaveIn = (live.bart[nextBart.key] ? nowMin + live.bart[nextBart.key].min : nextBart.dep) - nextBart.lead - nowMin; nextLabel = `BART ${fmt(nextBart.dep).t}${nextBart.direct ? ' direct' : ' via MacArthur'}`; nextDetail = `North Berkeley, 0.35 mi · Montgomery ${fmt(nextBart.arr).t}${fmt(nextBart.arr).ampm}`; }
-      else { nextLabel = 'Last express has left'; nextDetail = 'The F runs every 20 to 30 minutes from Shattuck & Allston.'; }
+      msg.innerHTML = `<span class="big">No more express buses this morning</span>The F runs every 20 to 30 minutes from Shattuck &amp; Allston.${bartLine(nextBart)}`;
     } else {
       const tr = nextBus;
-      const d = fmt(tr.dep), a = fmt(tr.arr);
+      const d = fmt(tr.dep);
       const lv = live.act[tr.key];
-      const leaveIn = (lv ? nowMin + lv.min : tr.dep) - tr.lead - nowMin;
-      const when = leaveIn <= 0 ? 'Leave now' : `Leave in ${leaveIn} min`;
-      msg.innerHTML = `<span class="big">${when} for the ${tr.approx && !lv ? '~' : ''}${lv ? fmt(nowMin + lv.min).t : d.t} ${tr.line}</span>${esc(tr.stop)}, ${tr.dist} away · arrives ${a.t}${a.ampm}${bartLine(nextBart)}`;
-      nextLeaveIn = leaveIn;
-      nextLabel = `${tr.approx && !lv ? '~' : ''}${lv ? fmt(nowMin + lv.min).t : d.t} ${tr.line} from ${tr.stop}`;
-      nextDetail = `${tr.dist} away · arrives Salesforce TC ${a.t}${a.ampm}` + (nextBart ? ` · or BART at ${fmt(nextBart.dep).t}` : '');
+      const when = lv ? (lv.min <= 0 ? 'leaving now' : 'in ' + lv.min + ' min') : `${tr.approx ? '~' : ''}${d.t}${d.ampm}`;
+      msg.innerHTML = `<span class="big">Next bus: ${tr.line} ${when}</span>${esc(tr.stop)}, ${tr.dist}${bartLine(nextBart)}`;
     }
-
-    // Countdown hero
-    const ringNum = document.getElementById('ringNum'), ringUnit = document.getElementById('ringUnit'), prog = document.getElementById('ringProg');
-    const C = 552.9;
-    if (nextLeaveIn === null) { ringNum.textContent = '—'; ringUnit.textContent = 'nothing to catch'; prog.style.strokeDashoffset = C; prog.classList.remove('tight'); }
-    else if (nextLeaveIn <= 0) { ringNum.textContent = 'Go'; ringUnit.textContent = 'leave now'; prog.style.strokeDashoffset = 0; prog.classList.add('tight'); }
-    else { ringNum.textContent = nextLeaveIn; ringUnit.textContent = 'min to leave'; prog.style.strokeDashoffset = C * (1 - Math.min(nextLeaveIn, 30) / 30); prog.classList.toggle('tight', nextLeaveIn <= 3); }
-    document.getElementById('ringK').textContent = nextBus ? 'Next bus you can make' : 'Next option';
-    document.getElementById('ringV').textContent = nextLabel;
-    document.getElementById('ringD').textContent = nextDetail;
 
     // Map markers: the next departure per line, blinking when live
     const stopsXY = { BART: [150, 55], J: [150, 120], FS: [150, 185], G: [150, 250] };
     const nextPer = {};
-    for (const r of rows) { if (!planning && r.dep - r.lead < nowMin) continue; if (!nextPer[r.line]) nextPer[r.line] = r; }
+    for (const r of rows) { if (!planning && r.dep < nowMin) continue; if (!nextPer[r.line]) nextPer[r.line] = r; }
     document.getElementById('mapMarkers').innerHTML = Object.entries(stopsXY).map(([ln, [x, y]]) => {
       const r = nextPer[ln]; if (!r) return '';
       const lv = ln === 'BART' ? live.bart[r.key] : live.act[r.key];
@@ -884,6 +809,21 @@
     document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
     document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
   }
+
+  // ---------- Bus / Bus + BART toggle ----------
+  function setMode(mode, persist) {
+    document.documentElement.dataset.mode = mode;
+    document.querySelectorAll('#modePicker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    if (persist) { try { localStorage.setItem('mode', mode); } catch (e) {} }
+    render();
+  }
+  document.getElementById('modePicker').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-mode]'); if (b) setMode(b.dataset.mode, true);
+  });
+  let savedMode = 'all';
+  try { savedMode = localStorage.getItem('mode') || 'all'; } catch (e) {}
+  const urlMode = new URLSearchParams(location.search).get('mode');
+  if (urlMode === 'bus' || urlMode === 'all') savedMode = urlMode;
 
   // ---------- Look picker ----------
   function setLook(look, persist) {
@@ -911,6 +851,7 @@
     refreshLive();
   });
 
+  setMode(savedMode, false);
   setLook(savedLook, false);
   refreshLive();
   setInterval(render, 15000);
