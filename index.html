@@ -340,6 +340,12 @@
   .hero-map .bus { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
   .hero-map .bus.live { animation: blink 1.6s ease-in-out infinite; }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .hero-map .veh { stroke: var(--surface); stroke-width: 2.5; }
+  .hero-map .veh.J { fill: var(--line-j); } .hero-map .veh.FS { fill: var(--line-fs); } .hero-map .veh.G { fill: var(--line-g); } .hero-map .veh.BART { fill: var(--line-bart); }
+  .hero-map .veh-halo { fill: none; stroke-width: 2; opacity: 0.6; animation: halo 2.4s ease-out infinite; }
+  .hero-map .veh-halo.J { stroke: var(--line-j); } .hero-map .veh-halo.FS { stroke: var(--line-fs); } .hero-map .veh-halo.G { stroke: var(--line-g); } .hero-map .veh-halo.BART { stroke: var(--line-bart); }
+  @keyframes halo { 0% { r: 7; opacity: 0.7; } 100% { r: 16; opacity: 0; } }
+  .hero-map .veh-lbl { font-family: var(--font-body); font-size: 10px; font-weight: 600; fill: var(--muted); }
   .hero-map .eta { font-family: var(--font-digits); font-size: 14px; font-weight: 700; fill: var(--ink); font-variant-numeric: tabular-nums; }
   :root[data-look="map"] h1 { font-weight: 600; letter-spacing: 0.02em; }
   :root[data-look="map"] .status { background: var(--surface); color: var(--ink); border: 2px solid var(--ink); }
@@ -410,7 +416,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .row, body { transition: none; }
-    .pill.on .dot, .hero-map .bus.live { animation: none; }
+    .pill.on .dot, .hero-map .bus.live, .hero-map .veh-halo { animation: none; }
     :root[data-look="flap"] .flip .ch { animation: none; }
     :root[data-look="type"] .row.gone { animation: none; }
   }
@@ -481,6 +487,8 @@
       <rect class="hub" x="682" y="142" width="16" height="16" rx="3"/>
       <text class="lbl" x="752" y="180" text-anchor="end">Salesforce Transit Center</text>
       <text class="lbl small bart-only" x="752" y="194" text-anchor="end">Montgomery BART · 5 min walk</text>
+      <!-- Vehicles en route (live), filled by JS -->
+      <g id="mapVehicles"></g>
       <!-- Next departure per line, filled by JS -->
       <g id="mapMarkers"></g>
     </svg>
@@ -592,7 +600,8 @@
   const nowMinutes = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
   const chars = (t, rowIndex) => t.split('').map((c, i) => `<span class="ch${c === ':' ? ' colon' : ''}" style="--i:${i};--r:${rowIndex}">${c}</span>`).join('');
 
-  const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null };
+  const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null, vehicles: { bart: [], act: [] } };
+  const BART_RIDE = { am: 27, pm: 26 };
 
   // ---------- Live feeds ----------
   function attachLive(rows, estimates, store, tolerance) {
@@ -633,9 +642,30 @@
       }
       attachLive((isEvening() ? BART_PM : BART).map(r => ({ ...r, type: r.direct ? 'direct' : 'xfer' })), ests, live.bart, 9);
       live.bartAt = new Date(); live.bartErr = null;
+      // Trains already en route: Red-line arrival estimates at the far end, mapped onto the ride time.
+      try {
+        const far = isEvening() ? 'NBRK' : 'MONT';
+        const r2 = await fetch('https://api.bart.gov/api/etd.aspx?cmd=etd&orig=' + far + '&key=' + BART_KEY + '&json=y', { cache: 'no-store' });
+        const d2 = await r2.json();
+        const st2 = (d2.root.station || [])[0] || {};
+        const ride = isEvening() ? BART_RIDE.pm : BART_RIDE.am;
+        const veh = [];
+        for (const etd of (st2.etd || [])) {
+          const towardHome = etd.abbreviation === 'RICH';
+          if (isEvening() ? !towardHome : towardHome) continue;
+          for (const est of (etd.estimate || [])) {
+            if ((est.color || '').toUpperCase() !== 'RED') continue;
+            const min = est.minutes === 'Leaving' ? 0 : parseInt(est.minutes, 10);
+            if (Number.isNaN(min) || min > ride - 1) continue;
+            veh.push({ line: 'BART', frac: 1 - min / ride, label: min <= 0 ? 'arriving' : min + ' min out' });
+          }
+        }
+        live.vehicles.bart = veh;
+      } catch (e) { live.vehicles.bart = []; }
     } catch (err) {
       live.bartErr = err && err.message ? err.message : 'blocked'; live.bartAt = null;
       for (const k in live.bart) delete live.bart[k];
+      live.vehicles.bart = [];
     }
   }
   async function fetchAct() {
@@ -666,11 +696,51 @@
       }
       attachLive((isEvening() ? BUS_PM : BUS).map(r => ({ ...r, type: r.line + '@' + r.stpid })), ests, live.act, 15);
       live.actAt = new Date(); live.actErr = null;
+      live.vehicles.act = await fetchActVehicles(token);
     } catch (err) {
       live.actErr = err && err.message ? err.message : 'blocked'; live.actAt = null;
       for (const k in live.act) delete live.act[k];
+      live.vehicles.act = [];
     }
   }
+  // Bus positions: the vehicle feed gives distance along its pattern (pdist, feet); the pattern lists each stop's pdist.
+  const patternCache = {};
+  const HOME_STOP = { J: { am: '792', pm: '5847' }, FS: { am: '652', pm: '5828' }, G: { am: '625', pm: '5829' } };
+  const TC_STOP =   { J: { am: '5847', pm: '792' }, FS: { am: '5828', pm: '652' }, G: { am: '5829', pm: '625' } };
+  async function getPattern(pid, rt, token) {
+    if (patternCache[pid]) return patternCache[pid];
+    const res = await fetch('https://api.actransit.org/transit/actrealtime/pattern?pid=' + pid + '&token=' + encodeURIComponent(token), { cache: 'force-cache' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const ptr = (((data['bustime-response'] || {}).ptr) || [])[0];
+    if (ptr) patternCache[pid] = ptr;
+    return ptr || null;
+  }
+  async function fetchActVehicles(token) {
+    try {
+      const res = await fetch('https://api.actransit.org/transit/actrealtime/vehicle?rt=J,FS,G&tmres=m&token=' + encodeURIComponent(token), { cache: 'no-store' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const vs = ((data['bustime-response'] || {}).vehicle) || [];
+      const dir = isEvening() ? 'pm' : 'am';
+      const out = [];
+      for (const v of vs) {
+        const rt = v.rt; if (!HOME_STOP[rt]) continue;
+        const ptr = await getPattern(v.pid, rt, token); if (!ptr) continue;
+        const pts = ptr.pt || [];
+        const a = pts.find(p => p.stpid === HOME_STOP[rt][dir]);
+        const b = pts.find(p => p.stpid === TC_STOP[rt][dir]);
+        if (!a || !b) continue;                       // this pattern runs the other way
+        const lo = Math.min(a.pdist, b.pdist), hi = Math.max(a.pdist, b.pdist);
+        const pd = Number(v.pdist);
+        if (Number.isNaN(pd) || pd < lo || pd > hi) continue;   // not between the two stops yet
+        const frac = (pd - a.pdist) / (b.pdist - a.pdist);      // 0 at the boarding stop, 1 at the destination
+        out.push({ line: rt, frac: Math.max(0, Math.min(1, frac)), label: v.dly ? 'delayed' : 'en route' });
+      }
+      return out;
+    } catch (e) { return []; }
+  }
+
   async function refreshLive() { await Promise.all([fetchBart(), fetchAct()]); render(); }
 
   // ---------- Sun position for the Sky look ----------
@@ -803,6 +873,19 @@
               <text class="eta" x="${mx + 14}" y="${y + 5}">${label}</text>`;
     }).join('');
 
+    // Vehicles along the schematic routes
+    const vehEl = document.getElementById('mapVehicles');
+    const allVeh = showBart ? [...live.vehicles.act, ...live.vehicles.bart] : live.vehicles.act;
+    vehEl.innerHTML = allVeh.map(v => {
+      const path = document.querySelector('.hero-map .route.' + v.line); if (!path) return '';
+      const L = path.getTotalLength();
+      const f = pm ? 1 - v.frac : v.frac;               // evening trips run from the hub back toward the stops
+      const pt = path.getPointAtLength(L * f);
+      return `<circle class="veh-halo ${v.line}" cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="7"/>
+              <circle class="veh ${v.line}" cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="6"/>
+              <text class="veh-lbl" x="${pt.x.toFixed(1)}" y="${(pt.x < 330 ? pt.y + 19 : pt.y - 11).toFixed(1)}" text-anchor="middle">${v.line === 'BART' ? v.label : v.line + ' · ' + v.label}</text>`;
+    }).join('');
+
     // Live pill + feed status
     const anyLive = !!(live.bartAt || live.actAt);
     document.getElementById('pill').classList.toggle('on', anyLive);
@@ -817,6 +900,7 @@
     document.querySelectorAll('#dirPicker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dir === dir)));
     for (const k in live.bart) delete live.bart[k];
     for (const k in live.act) delete live.act[k];
+    live.vehicles.bart = []; live.vehicles.act = [];
     flipOnce = true;
     render();
     refreshLive();
