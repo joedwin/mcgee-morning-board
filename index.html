@@ -381,6 +381,10 @@
   .hero-river .col-lbl { font-family: var(--font-display); font-size: 14px; font-weight: 700; fill: var(--muted); letter-spacing: 0.06em; }
   .hero-river .band { rx: 6; opacity: 0.92; transition: y 900ms ease, height 900ms ease; }
   .hero-river .band.J { fill: var(--line-j); } .hero-river .band.FS { fill: var(--line-fs); } .hero-river .band.G { fill: var(--line-g); } .hero-river .band.BART { fill: var(--line-bart); }
+  .hero-river .band.BART.red { fill: var(--bart-red, #E0292B); } .hero-river .band.BART.orange { fill: var(--bart-orange, #F08A24); } .hero-river .band.BART.yellow { fill: var(--bart-yellow, #F2C112); }
+  .hero-river .band-lbl.onyellow, .hero-river .band-sub.onyellow, .hero-river .band-arr.onyellow { fill: #1B1F1C; }
+  .hero-river .legend { font-family: var(--font-body); font-size: 10px; font-weight: 600; fill: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .hero-river .legend-dot.red { fill: var(--bart-red, #E0292B); } .hero-river .legend-dot.orange { fill: var(--bart-orange, #F08A24); } .hero-river .legend-dot.yellow { fill: var(--bart-yellow, #F2C112); }
   .hero-river .band.live { stroke: var(--ink); stroke-width: 2; }
   .hero-river .band-lbl { font-family: var(--font-digits); font-size: 15px; font-weight: 700; fill: var(--badge-ink); font-variant-numeric: tabular-nums; }
   .hero-river .band-sub { font-family: var(--font-body); font-size: 10px; fill: var(--badge-ink); opacity: 0.85; }
@@ -1182,7 +1186,6 @@
     const svg = document.getElementById('riverSvg'); if (!svg) return;
     const W = 760, H = 440, top = 30, bottom = 400, axisX = 64;
     const lines = ctx.showBart ? LINES : LINES.filter(l => l !== 'BART');
-    const colW = (W - axisX - 12) / lines.length;
     const BUSES = ctx.pm ? BUS_PM : BUS, TRAINS = ctx.pm ? BART_PM : BART;
     const all = [...BUSES, ...TRAINS].filter(r => ctx.showBart || r.line !== 'BART');
     let start, win;
@@ -1193,7 +1196,6 @@
       const yy = y(m); const f = fmt(m);
       out += `<line class="grid" x1="${axisX}" y1="${yy.toFixed(1)}" x2="${W - 12}" y2="${yy.toFixed(1)}"/><text class="grid-lbl" x="${axisX - 8}" y="${(yy + 4).toFixed(1)}" text-anchor="end">${f.t}</text>`;
     }
-    lines.forEach((ln, i) => { out += `<text class="col-lbl" x="${(axisX + colW * i + colW / 2).toFixed(1)}" y="18" text-anchor="middle">${ln}</text>`; });
     // Pack each column into lanes so overlapping trips sit side by side
     const visible = all.map(r => { const lv = ln2lv(r); const dep = lv ? ctx.nowMin + lv.min : r.dep; return { r, lv, dep, arr: dep + (r.arr - r.dep) }; })
       .filter(t => t.dep >= start - 2 && t.dep <= start + win).sort((a, b) => a.dep - b.dep);
@@ -1204,18 +1206,25 @@
       if (k === -1) { k = ls.length; ls.push(0); }
       ls[k] = t.arr; t.lane = k;
     }
+    // Every band the same width: columns get as many lanes as they need
+    const laneCount = {}; let totalLanes = 0;
+    for (const ln of lines) { laneCount[ln] = Math.max(1, (lanes[ln] || []).length); totalLanes += laneCount[ln]; }
+    const laneW = (W - axisX - 12) / totalLanes, gap = Math.min(8, laneW * 0.12), bandW = laneW - gap;
+    const colX = {}; let cx = axisX + 6;
+    for (const ln of lines) { colX[ln] = cx; out += `<text class="col-lbl" x="${(cx + laneW * laneCount[ln] / 2 - 3).toFixed(1)}" y="18" text-anchor="middle">${ln}</text>`; cx += laneW * laneCount[ln]; }
+    if (ctx.showBart) out += `<text class="legend" x="${W - 12}" y="${bottom + 17}" text-anchor="end">${ctx.pm ? 'Yellow' : 'Orange'} + transfer</text><circle class="legend-dot ${ctx.pm ? 'yellow' : 'orange'}" cx="${W - 132}" cy="${bottom + 13}" r="4"/><text class="legend" x="${W - 146}" y="${bottom + 17}" text-anchor="end">Red direct</text><circle class="legend-dot red" cx="${W - 216}" cy="${bottom + 13}" r="4"/>`;
     for (const t of visible) {
       const { r, lv, dep, arr } = t;
-      const i = lines.indexOf(r.line);
-      const n = lanes[r.line].length, lw = (colW - 12) / n;
-      const x = axisX + colW * i + 6 + lw * t.lane + 2, w = lw - 4;
+      const x = colX[r.line] + laneW * t.lane, w = bandW;
+      const bartCls = r.line === 'BART' ? (r.direct ? ' red' : (ctx.pm ? ' yellow' : ' orange')) : '';
+      const onY = bartCls === ' yellow' ? ' onyellow' : '';
       const y1 = Math.max(top, y(arr)), y2 = Math.min(bottom, y(dep));
       if (y2 - y1 < 4) continue;
       const d = fmt(dep), a = fmt(arr);
-      out += `<rect class="band ${r.line}${lv ? ' live' : ''}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${w.toFixed(1)}" height="${(y2 - y1).toFixed(1)}"/>`;
-      if (y2 - y1 > 30 && w > 44) out += `<text class="band-lbl" x="${(x + 6).toFixed(1)}" y="${(y2 - 8).toFixed(1)}">${lv ? (lv.min <= 0 ? 'now' : lv.min + ' min') : d.t}</text>`;
-      if (y2 - y1 > 48 && w > 90) out += `<text class="band-sub" x="${(x + 6).toFixed(1)}" y="${(y2 - 24).toFixed(1)}">${esc(r.line === 'BART' ? (r.direct ? 'direct' : 'transfer') : (ctx.pm ? r.stop.replace('Salesforce TC', 'TC') : r.stop))}</text>`;
-      if (y2 - y1 > 64 && w > 60) out += `<text class="band-arr" x="${(x + 6).toFixed(1)}" y="${(y1 + 14).toFixed(1)}">arr ${a.t}</text>`;
+      out += `<rect class="band ${r.line}${bartCls}${lv ? ' live' : ''}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${w.toFixed(1)}" height="${(y2 - y1).toFixed(1)}"/>`;
+      if (y2 - y1 > 30 && w > 44) out += `<text class="band-lbl${onY}" x="${(x + 6).toFixed(1)}" y="${(y2 - 8).toFixed(1)}">${lv ? (lv.min <= 0 ? 'now' : lv.min + ' min') : d.t}</text>`;
+      if (y2 - y1 > 48 && w > 90) out += `<text class="band-sub${onY}" x="${(x + 6).toFixed(1)}" y="${(y2 - 24).toFixed(1)}">${esc(r.line === 'BART' ? (r.direct ? 'direct' : 'transfer') : (ctx.pm ? r.stop.replace('Salesforce TC', 'TC') : r.stop))}</text>`;
+      if (y2 - y1 > 64 && w > 60) out += `<text class="band-arr${onY}" x="${(x + 6).toFixed(1)}" y="${(y1 + 14).toFixed(1)}">arr ${a.t}</text>`;
     }
     out += `<line class="now" x1="${axisX}" y1="${bottom}" x2="${W - 12}" y2="${bottom}"/><text class="now-lbl" x="${axisX}" y="${bottom + 16}">${ctx.planning ? 'service window' : 'now'}</text>`;
     svg.innerHTML = out;
