@@ -3,6 +3,8 @@
 <title>McGee Morning Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Karla:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   /* ===================== Base tokens (Classic look) ===================== */
   :root {
@@ -109,6 +111,35 @@
     --badge-ink: #161719; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F; color-scheme: dark;
   }
 
+  /* ===================== Look: Radar (phosphor, always dark) ===================== */
+  :root[data-look="radar"] {
+    --bg: #04110A; --bg-image: none; --surface: #07160E; --ink: #C9FFDF; --muted: #5FA47C; --rule: #0F3A22;
+    --accent: #3CFF8F; --accent-ink: #04110A; --next-bg: #0B2416; --next-rule: #3CFF8F; --gone: #2A5A3C;
+    --badge-ink: #04110A; --line-j: #3CFF8F; --line-fs: #6FE3FF; --line-g: #FFC24A; --line-bart: #9FD2FF;
+    --amber: #FFC24A; --live: #3CFF8F; --radius: 4px; color-scheme: dark;
+  }
+  /* ===================== Look: Bay (water + land) ===================== */
+  :root[data-look="bay"] {
+    --bg: #D8E6EE; --bg-image: none; --surface: rgba(255,255,255,0.55); --ink: #1F2A33; --muted: #5E6E7A; --rule: rgba(31,42,51,0.12);
+    --accent: #1F2A33; --accent-ink: #EAF2F6; --next-bg: rgba(255,255,255,0.7); --next-rule: #1F2A33; --gone: #9AA9B3;
+    --badge-ink: #EAF2F6; --line-j: #1E8A55; --line-fs: #2A63A8; --line-g: #D2621E; --line-bart: #1A8FC9;
+    --amber: #B8561B; --live: #1E8A55; --radius: 10px; --land: #EDE9DF; --water: #D8E6EE; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-look="bay"]:not([data-theme="light"]) {
+      --bg: #0C1820; --surface: rgba(255,255,255,0.06); --ink: #E4EEF3; --muted: #8FA3AF; --rule: rgba(228,238,243,0.12);
+      --accent: #E4EEF3; --accent-ink: #0C1820; --next-bg: rgba(255,255,255,0.1); --next-rule: #E4EEF3; --gone: #4D5E68;
+      --badge-ink: #0C1820; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F;
+      --land: #1A2831; --water: #0C1820; color-scheme: dark;
+    }
+  }
+  :root[data-look="bay"][data-theme="dark"] {
+    --bg: #0C1820; --surface: rgba(255,255,255,0.06); --ink: #E4EEF3; --muted: #8FA3AF; --rule: rgba(228,238,243,0.12);
+    --accent: #E4EEF3; --accent-ink: #0C1820; --next-bg: rgba(255,255,255,0.1); --next-rule: #E4EEF3; --gone: #4D5E68;
+    --badge-ink: #0C1820; --line-j: #4FD08F; --line-fs: #6FB0EA; --line-g: #F0955A; --line-bart: #5CC4F5; --amber: #F0955A; --live: #4FD08F;
+    --land: #1A2831; --water: #0C1820; color-scheme: dark;
+  }
+
   /* ===================== Shared structure ===================== */
   * { box-sizing: border-box; }
   html { background: var(--bg); }
@@ -154,6 +185,7 @@
   /* Look picker */
   .picker {
     display: inline-flex;
+    flex-wrap: wrap;
     gap: 2px;
     padding: 3px;
     border: 1px solid var(--rule);
@@ -286,6 +318,92 @@
   .hero-map { display: none; }
   :root[data-look="map"] .hero-map { display: block; }
 
+  /* ===================== Real map ===================== */
+  .hero-real { display: none; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+  :root[data-look="real"] .hero-real { display: block; }
+  #realMap { height: 440px; background: var(--surface); }
+  #realMap .leaflet-tooltip { font-family: var(--font-body); font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  #realMap .veh-tip { font-family: var(--font-digits); font-size: 13px; }
+  #realMap .tiles-dark { filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.88) saturate(0.6); }
+  #realMap .tiles-light { filter: saturate(0.55) contrast(0.95); }
+
+  /* ===================== Strip maps ===================== */
+  .hero-strip { display: none; flex-direction: column; gap: 10px; }
+  :root[data-look="strip"] .hero-strip { display: flex; }
+  .strip { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 18px 12px; display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 6px 16px; align-items: center; }
+  .strip .strip-head { grid-row: 1 / 3; }
+  .strip .ends { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 600; color: var(--ink); margin-top: 14px; }
+  .strip .ends span:last-child { text-align: right; }
+  .strip .strip-head { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .strip .strip-next { font-family: var(--font-digits); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .strip .strip-next.live { color: var(--live); }
+  .strip .track { position: relative; height: 26px; }
+  .strip .track::before { content: ""; position: absolute; left: 0; right: 0; top: 12px; height: 4px; border-radius: 2px; background: var(--rule); }
+  .strip.J .track::before { background: var(--line-j); } .strip.FS .track::before { background: var(--line-fs); } .strip.G .track::before { background: var(--line-g); } .strip.BART .track::before { background: var(--line-bart); }
+  .strip .tick { position: absolute; top: 8px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); box-sizing: border-box; }
+  .strip .tick b { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; letter-spacing: 0.01em; }
+  .strip .tick.up b { top: auto; bottom: 16px; }
+  .strip .tick.end { border-width: 4px; }
+  .strip .tick.end b { display: none; }
+  .strip .veh { position: absolute; top: 5px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--ink); z-index: 2; transition: left 900ms ease; }
+  .strip .veh::after { content: attr(data-label); position: absolute; left: 50%; transform: translateX(-50%); top: -20px; font-size: 10px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .strip.J .veh { background: var(--line-j); } .strip.FS .veh { background: var(--line-fs); } .strip.G .veh { background: var(--line-g); } .strip.BART .veh { background: var(--line-bart); }
+  .strip .empty-note { position: absolute; left: 50%; top: -2px; transform: translateX(-50%); font-size: 11px; color: var(--muted); }
+
+  /* ===================== Radar ===================== */
+  .hero-radar { display: none; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 8px 8px 0; }
+  :root[data-look="radar"] .hero-radar { display: block; }
+  .hero-radar svg { width: 100%; height: auto; display: block; }
+  .hero-radar .ring { fill: none; stroke: var(--rule); stroke-width: 1.5; }
+  .hero-radar .ring-lbl { font-family: var(--font-body); font-size: 10px; fill: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-radar .spoke { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 6; }
+  .hero-radar .spoke-lbl { font-family: var(--font-display); font-size: 14px; font-weight: 700; fill: var(--muted); letter-spacing: 0.08em; }
+  .hero-radar .sweep { fill: url(#sweepGrad); transform-origin: 380px 380px; animation: sweep 6s linear infinite; }
+  @keyframes sweep { from { transform: rotate(-180deg); } to { transform: rotate(0deg); } }
+  .hero-radar .blip { stroke: var(--surface); stroke-width: 2; }
+  .hero-radar .blip.J { fill: var(--line-j); } .hero-radar .blip.FS { fill: var(--line-fs); } .hero-radar .blip.G { fill: var(--line-g); } .hero-radar .blip.BART { fill: var(--line-bart); }
+  .hero-radar .blip-halo { fill: none; stroke: var(--accent); stroke-width: 1.5; animation: halo 2.4s ease-out infinite; }
+  .hero-radar .blip-lbl { font-family: var(--font-digits); font-size: 15px; font-weight: 700; fill: var(--ink); font-variant-numeric: tabular-nums; }
+  .hero-radar .blip-sub { font-family: var(--font-body); font-size: 10px; fill: var(--muted); }
+  .hero-radar .center { fill: var(--accent); }
+  .hero-radar .center-lbl { font-family: var(--font-body); font-size: 10px; font-weight: 600; fill: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  :root[data-look="radar"] h1 { color: var(--accent); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 30px; }
+  :root[data-look="radar"] .board { box-shadow: inset 0 0 0 1px var(--rule); }
+
+  /* ===================== Time river ===================== */
+  .hero-river { display: none; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 12px 4px; }
+  :root[data-look="river"] .hero-river { display: block; }
+  .hero-river svg { width: 100%; height: auto; display: block; }
+  .hero-river .grid { stroke: var(--rule); stroke-width: 1; }
+  .hero-river .grid-lbl { font-family: var(--font-digits); font-size: 12px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .hero-river .now { stroke: var(--ink); stroke-width: 2; }
+  .hero-river .now-lbl { font-family: var(--font-body); font-size: 10px; font-weight: 600; fill: var(--ink); letter-spacing: 0.1em; text-transform: uppercase; }
+  .hero-river .col-lbl { font-family: var(--font-display); font-size: 14px; font-weight: 700; fill: var(--muted); letter-spacing: 0.06em; }
+  .hero-river .band { rx: 6; opacity: 0.92; transition: y 900ms ease, height 900ms ease; }
+  .hero-river .band.J { fill: var(--line-j); } .hero-river .band.FS { fill: var(--line-fs); } .hero-river .band.G { fill: var(--line-g); } .hero-river .band.BART { fill: var(--line-bart); }
+  .hero-river .band.live { stroke: var(--ink); stroke-width: 2; }
+  .hero-river .band-lbl { font-family: var(--font-digits); font-size: 15px; font-weight: 700; fill: var(--badge-ink); font-variant-numeric: tabular-nums; }
+  .hero-river .band-sub { font-family: var(--font-body); font-size: 10px; fill: var(--badge-ink); opacity: 0.85; }
+  .hero-river .band-arr { font-family: var(--font-digits); font-size: 11px; font-weight: 600; fill: var(--badge-ink); opacity: 0.85; font-variant-numeric: tabular-nums; }
+
+  /* ===================== Bay silhouette ===================== */
+  .hero-bay { display: none; border-radius: var(--radius); overflow: hidden; background: var(--water, var(--surface)); }
+  :root[data-look="bay"] .hero-bay { display: block; }
+  .hero-bay svg { width: 100%; height: auto; display: block; }
+  .hero-bay .land { fill: var(--land, var(--rule)); }
+  .hero-bay .shore { fill: none; stroke: var(--ink); stroke-width: 0.6; opacity: 0.35; }
+  .hero-bay .rte { fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+  .hero-bay .rte.J { stroke: var(--line-j); } .hero-bay .rte.FS { stroke: var(--line-fs); } .hero-bay .rte.G { stroke: var(--line-g); } .hero-bay .rte.BART { stroke: var(--line-bart); stroke-dasharray: 3 4; }
+  .hero-bay .pt { fill: var(--ink); }
+  .hero-bay .veh { stroke: var(--water, var(--surface)); stroke-width: 2; }
+  .hero-bay .veh.J { fill: var(--line-j); } .hero-bay .veh.FS { fill: var(--line-fs); } .hero-bay .veh.G { fill: var(--line-g); } .hero-bay .veh.BART { fill: var(--line-bart); }
+  .hero-bay .veh-halo { fill: none; stroke-width: 1.5; opacity: 0.6; animation: halo 2.4s ease-out infinite; }
+  .hero-bay .veh-halo.J { stroke: var(--line-j); } .hero-bay .veh-halo.FS { stroke: var(--line-fs); } .hero-bay .veh-halo.G { stroke: var(--line-g); } .hero-bay .veh-halo.BART { stroke: var(--line-bart); }
+  .hero-bay .place { font-family: var(--font-display); font-size: 22px; font-weight: 600; fill: var(--ink); opacity: 0.55; letter-spacing: 0.12em; text-transform: uppercase; }
+  .hero-bay .place.small { font-size: 11px; letter-spacing: 0.14em; opacity: 0.5; font-family: var(--font-body); font-weight: 600; }
+  :root[data-look="bay"] .board { border-color: transparent; }
+  :root[data-look="bay"] .picker { background: var(--surface); }
+
   /* ===================== Split-flap specifics ===================== */
   :root[data-look="flap"] .page { max-width: 820px; }
   :root[data-look="flap"] h1 { font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 30px; color: var(--accent); }
@@ -401,7 +519,7 @@
     .page { padding: 20px 12px 40px; gap: 16px; }
     h1 { font-size: 36px; }
     :root[data-look="type"] h1 { font-size: 46px; }
-    .picker { overflow-x: auto; max-width: 100%; }
+    .picker { max-width: 100%; }
     .status { padding: 12px 16px; }
     .board-head { display: none; }
     .row { grid-template-columns: 90px 40px 1fr; grid-template-rows: auto auto; gap: 6px 10px; padding-right: 12px; }
@@ -416,7 +534,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .row, body { transition: none; }
-    .pill.on .dot, .hero-map .bus.live, .hero-map .veh-halo { animation: none; }
+    .pill.on .dot, .hero-map .bus.live, .hero-map .veh-halo, .hero-radar .sweep, .hero-radar .blip-halo, .hero-bay .veh-halo { animation: none; }
+    .strip .veh, .hero-river .band { transition: none; }
     :root[data-look="flap"] .flip .ch { animation: none; }
     :root[data-look="type"] .row.gone { animation: none; }
   }
@@ -441,6 +560,11 @@
         <button type="button" data-look="map">Map</button>
         <button type="button" data-look="sky">Sky</button>
         <button type="button" data-look="type">Type</button>
+        <button type="button" data-look="real">Real map</button>
+        <button type="button" data-look="strip">Strips</button>
+        <button type="button" data-look="radar">Radar</button>
+        <button type="button" data-look="river">River</button>
+        <button type="button" data-look="bay">Bay</button>
         </div>
       </div>
     </div>
@@ -494,6 +618,35 @@
     </svg>
   </div>
 
+
+  <div class="hero-real"><div id="realMap" aria-label="Map of the four routes with live vehicles"></div></div>
+
+  <div class="hero-strip" id="heroStrip" aria-label="Strip maps"></div>
+
+  <div class="hero-radar" aria-label="Radar of upcoming departures">
+    <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style="stop-color: var(--accent)" stop-opacity="0"/>
+          <stop offset="1" style="stop-color: var(--accent)" stop-opacity="0.28"/>
+        </linearGradient>
+        <clipPath id="radarClip"><rect x="0" y="0" width="760" height="382"/></clipPath>
+      </defs>
+      <g clip-path="url(#radarClip)">
+        <path class="sweep" d="M380 380 L 720 380 A 340 340 0 0 0 380 40 Z"/>
+      </g>
+      <g id="radarStatic"></g>
+      <g id="radarBlips"></g>
+    </svg>
+  </div>
+
+  <div class="hero-river" aria-label="Timeline of upcoming trips">
+    <svg viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg" id="riverSvg"></svg>
+  </div>
+
+  <div class="hero-bay" aria-label="Bay silhouette with live vehicles">
+    <svg viewBox="0 0 760 600" xmlns="http://www.w3.org/2000/svg" id="baySvg"></svg>
+  </div>
 
   <div class="banner" id="banner"></div>
 
@@ -588,7 +741,37 @@
   const bartUrl = () => 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=' + (isEvening() ? 'MONT' : 'NBRK') + '&key=' + BART_KEY + '&json=y';
   const actUrl = () => 'https://api.actransit.org/transit/actrealtime/prediction?stpid=' + (isEvening() ? '5847,5828,5829' : '792,652,625') + '&rt=J,FS,G&top=20&tmres=m&token=';
   const isEvening = () => document.documentElement.dataset.dir === 'pm';
-  const HOME = { lat: 37.877, lon: -122.278 };
+  const HOME = { lat: 37.87, lon: -122.28 };  // rounded: only used for sunrise math
+  const SHAPES = {"FS":[[37.87854,-122.26923],[37.87219,-122.26842],[37.86911,-122.29254],[37.86665,-122.30455],[37.86676,-122.30508],[37.86722,-122.3052],[37.86743,-122.3047],[37.86709,-122.3042],[37.86506,-122.30338],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82807,-122.29524],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.78584,-122.39125],[37.78513,-122.39298],[37.78524,-122.39452],[37.78684,-122.39655],[37.78767,-122.39831],[37.78805,-122.39853],[37.78867,-122.3978]],"G":[[37.87542,-122.29433],[37.86914,-122.29221],[37.8667,-122.30437],[37.86673,-122.30501],[37.86729,-122.30522],[37.8671,-122.30421],[37.86507,-122.30337],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82819,-122.29509],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.7857,-122.39146],[37.78511,-122.39311],[37.78528,-122.3946],[37.78793,-122.39858],[37.78874,-122.3977]],"J":[[37.87007,-122.28208],[37.86231,-122.2813],[37.86095,-122.28071],[37.85346,-122.2792],[37.85215,-122.28715],[37.85102,-122.29109],[37.85008,-122.29085],[37.8495,-122.29234],[37.84678,-122.29149],[37.84619,-122.29648],[37.84038,-122.2947],[37.83854,-122.2947],[37.83816,-122.29702],[37.83965,-122.29772],[37.83967,-122.29726],[37.83178,-122.29421],[37.82957,-122.2941],[37.82809,-122.29517],[37.82702,-122.29805],[37.82551,-122.30485],[37.82407,-122.31766],[37.82258,-122.32246],[37.8215,-122.33334],[37.81883,-122.35088],[37.81803,-122.35363],[37.81376,-122.36132],[37.78584,-122.39115],[37.78504,-122.39334],[37.78548,-122.39501],[37.78777,-122.39832],[37.78822,-122.3983],[37.78925,-122.3969]],"BART":[[37.873967,-122.28344],[37.852803,-122.270062],[37.829065,-122.26704],[37.80835,-122.268602],[37.803768,-122.27145],[37.804872,-122.29514],[37.792874,-122.39702],[37.789405,-122.401066]]};
+  const STOP_LL = { J: [37.87007, -122.28208], FS: [37.87854, -122.26923], G: [37.87542, -122.29433], BART: [37.873967, -122.28344] };
+  const TC_LL = [37.7893, -122.3972], MONT_LL = [37.789405, -122.401066];
+  // Strip-map ticks: [fraction of the ride, name], per line and direction
+  const TICKS = {
+    am: {
+      J:    [[0,'Sacramento & University'],[.26,'Ashby & San Pablo'],[.41,'65th & Hollis'],[.56,'Public Market'],[1,'Salesforce TC']],
+      FS:   [[0,'Shattuck & Cedar'],[.06,'University & Shattuck'],[.30,'6th & University'],[.58,'Toll Plaza'],[1,'Salesforce TC']],
+      G:    [[0,'San Pablo & Cedar'],[.07,'University & San Pablo'],[.15,'6th & University'],[1,'Salesforce TC']],
+      BART: [[0,'North Berkeley'],[.11,'Ashby'],[.26,'MacArthur'],[.37,'19th St'],[.44,'12th St'],[.56,'West Oakland'],[.89,'Embarcadero'],[1,'Montgomery']],
+    },
+    pm: {
+      J:    [[0,'Salesforce TC'],[.40,'40th & Hollis'],[.52,'Powell Plaza'],[.71,'65th & Hollis'],[.83,'Ashby & San Pablo'],[1,'Sacramento & University']],
+      FS:   [[0,'Salesforce TC'],[.19,'Toll Plaza'],[.79,'6th & University'],[1,'University & MLK']],
+      G:    [[0,'Salesforce TC'],[.28,'Toll Plaza'],[.83,'6th & University'],[.92,'University & San Pablo'],[1,'San Pablo & Cedar']],
+      BART: [[0,'Montgomery'],[.08,'Embarcadero'],[.42,'West Oakland'],[.54,'12th St'],[.62,'19th St'],[.73,'MacArthur'],[.88,'Ashby'],[1,'North Berkeley']],
+    },
+  };
+  const LINES = ['J', 'FS', 'G', 'BART'];
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function pointAlong(poly, f) {
+    // poly: [[lat,lon],...]; f in 0..1 by cumulative length
+    const d = [0];
+    for (let i = 1; i < poly.length; i++) d.push(d[i-1] + Math.hypot(poly[i][0]-poly[i-1][0], (poly[i][1]-poly[i-1][1]) * 0.79));
+    const target = f * d[d.length-1];
+    for (let i = 1; i < poly.length; i++) {
+      if (target <= d[i]) { const t = (target - d[i-1]) / ((d[i] - d[i-1]) || 1); return [poly[i-1][0] + (poly[i][0]-poly[i-1][0]) * t, poly[i-1][1] + (poly[i][1]-poly[i-1][1]) * t]; }
+    }
+    return poly[poly.length-1];
+  }
 
   // ---------- Helpers ----------
   const fmt = (m) => {
@@ -735,7 +918,7 @@
         const pd = Number(v.pdist);
         if (Number.isNaN(pd) || pd < lo || pd > hi) continue;   // not between the two stops yet
         const frac = (pd - a.pdist) / (b.pdist - a.pdist);      // 0 at the boarding stop, 1 at the destination
-        out.push({ line: rt, frac: Math.max(0, Math.min(1, frac)), label: v.dly ? 'delayed' : 'en route' });
+        out.push({ line: rt, frac: Math.max(0, Math.min(1, frac)), label: v.dly ? 'delayed' : 'en route', lat: Number(v.lat), lon: Number(v.lon) });
       }
       return out;
     } catch (e) { return []; }
@@ -886,12 +1069,194 @@
               <text class="veh-lbl" x="${pt.x.toFixed(1)}" y="${(pt.x < 330 ? pt.y + 19 : pt.y - 11).toFixed(1)}" text-anchor="middle">${v.line === 'BART' ? v.label : v.line + ' · ' + v.label}</text>`;
     }).join('');
 
+    renderHeroes({ rows, nextPer, pm, showBart, planning, nowMin, allVeh });
+
     // Live pill + feed status
     const anyLive = !!(live.bartAt || live.actAt);
     document.getElementById('pill').classList.toggle('on', anyLive);
     document.getElementById('pillText').textContent = anyLive ? 'Live' : 'Schedule';
     document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
     document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
+  }
+
+  // ---------- Extra looks: real map, strips, radar, river, bay ----------
+  let realMap = null, realTiles = null, realVeh = null, realTileDark = null;
+  function isDarkTheme() {
+    const t = document.documentElement.dataset.theme;
+    if (t === 'dark') return true; if (t === 'light') return false;
+    return matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function ensureRealMap() {
+    if (realMap || typeof L === 'undefined') return;
+    const el = document.getElementById('realMap'); if (!el || el.offsetWidth === 0) return;
+    realMap = L.map('realMap', { zoomControl: false, scrollWheelZoom: false, attributionControl: true });
+    realMap.attributionControl.setPrefix('');
+    const all = [];
+    for (const ln of LINES) {
+      const color = cssVar('--line-' + ln.toLowerCase());
+      L.polyline(SHAPES[ln], { color, weight: ln === 'BART' ? 3 : 4, opacity: 0.85, dashArray: ln === 'BART' ? '6 6' : null }).addTo(realMap);
+      SHAPES[ln].forEach(p => all.push(p));
+      const s = STOP_LL[ln];
+      L.circleMarker(s, { radius: 6, color: cssVar('--ink'), weight: 2, fillColor: cssVar('--surface'), fillOpacity: 1 }).addTo(realMap)
+        .bindTooltip(ln, { permanent: true, direction: ln === 'FS' ? 'top' : ln === 'G' ? 'left' : 'right', offset: ln === 'FS' ? [0, -8] : ln === 'G' ? [-8, 0] : [8, 0], className: 'stop-tip' });
+    }
+    L.circleMarker(TC_LL, { radius: 7, color: cssVar('--ink'), weight: 2, fillColor: cssVar('--ink'), fillOpacity: 1 }).addTo(realMap)
+      .bindTooltip('Salesforce Transit Center', { permanent: true, direction: 'bottom', offset: [0, 8] });
+    realMap.fitBounds(L.latLngBounds(all), { padding: [24, 24] });
+    realVeh = L.layerGroup().addTo(realMap);
+    setRealTiles();
+    setTimeout(() => realMap.invalidateSize(), 50);
+  }
+  function setRealTiles() {
+    if (!realMap) return;
+    const dark = isDarkTheme();
+    if (realTiles && realTileDark === dark) return;
+    if (realTiles) realMap.removeLayer(realTiles);
+    realTileDark = dark;
+    realTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, className: dark ? 'tiles-dark' : 'tiles-light' }).addTo(realMap);
+    realTiles.bringToBack();
+  }
+  function renderReal(ctx) {
+    ensureRealMap(); if (!realMap) return;
+    setRealTiles();
+    realVeh.clearLayers();
+    for (const v of ctx.allVeh) {
+      let ll;
+      if (v.lat && v.lon && !Number.isNaN(v.lat)) ll = [v.lat, v.lon];
+      else { const poly = ctx.pm ? [...SHAPES[v.line]].reverse() : SHAPES[v.line]; ll = pointAlong(poly, v.frac); }
+      const color = cssVar('--line-' + v.line.toLowerCase());
+      L.circleMarker(ll, { radius: 8, color: cssVar('--surface'), weight: 2.5, fillColor: color, fillOpacity: 1 }).addTo(realVeh)
+        .bindTooltip((v.line === 'BART' ? 'BART · ' : v.line + ' · ') + v.label, { permanent: true, direction: 'top', offset: [0, -8], className: 'veh-tip' });
+    }
+  }
+
+  function renderStrips(ctx) {
+    const el = document.getElementById('heroStrip'); if (!el) return;
+    const dir = ctx.pm ? 'pm' : 'am';
+    const lines = ctx.showBart ? LINES : LINES.filter(l => l !== 'BART');
+    el.innerHTML = lines.map(ln => {
+      const r = ctx.nextPer[ln];
+      const lv = r ? (ln === 'BART' ? live.bart[r.key] : live.act[r.key]) : null;
+      const nextTxt = r ? (lv ? (lv.min <= 0 ? 'now' : lv.min + ' min') : fmt(r.dep).t) : '—';
+      const T = TICKS[dir][ln];
+      const ticks = T.map(([f, name], i, arr) => {
+        const end = i === 0 || i === arr.length - 1;
+        const up = !end && i % 2 === 0;
+        return `<span class="tick${end ? ' end' : ''}${up ? ' up' : ''}" style="left:${(f * 100).toFixed(1)}%"><b>${esc(name)}</b></span>`;
+      }).join('');
+      const ends = `<div class="ends"><span>${esc(T[0][1])}</span><span>${esc(T[T.length - 1][1])}</span></div>`;
+      const vehs = ctx.allVeh.filter(v => v.line === ln).map(v => `<span class="veh" style="left:${(v.frac * 100).toFixed(1)}%" data-label="${esc(v.label)}"></span>`).join('');
+      return `<div class="strip ${ln}"><div class="strip-head"><span class="line ${ln}">${ln}</span><span class="strip-next${lv ? ' live' : ''}">${nextTxt}</span></div><div class="track">${ticks}${vehs}</div>${ends}</div>`;
+    }).join('');
+  }
+
+  function renderRadar(ctx) {
+    const st = document.getElementById('radarStatic'), bl = document.getElementById('radarBlips'); if (!st) return;
+    const cx = 380, cy = 380, R = 340, MAXMIN = 30;
+    const rOf = (min) => Math.min(R, Math.max(0, min) / MAXMIN * R);
+    const rings = [5, 10, 20, 30];
+    const angles = { J: 150, FS: 118, G: 62, BART: 30 };
+    const pol = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy - r * Math.sin(deg * Math.PI / 180)];
+    st.innerHTML = rings.map(m => { const r = rOf(m); return `<path class="ring" d="M${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}"/><text class="ring-lbl" x="${cx + 6}" y="${cy - r - 5}">${m} min</text>`; }).join('')
+      + Object.entries(angles).filter(([ln]) => ctx.showBart || ln !== 'BART').map(([ln, a]) => { const [x, y] = pol(R, a), [lx, ly] = pol(R + 14, a); return `<line class="spoke" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/><text class="spoke-lbl" x="${lx.toFixed(1)}" y="${(ly + 5).toFixed(1)}" text-anchor="middle">${ln}</text>`; }).join('')
+      + `<circle class="center" cx="${cx}" cy="${cy}" r="5"/><text class="center-lbl" x="${cx}" y="${cy + 16}" text-anchor="middle">${ctx.pm ? 'Transit Center' : 'home stops'}</text>`;
+    const BUSES = ctx.pm ? BUS_PM : BUS, TRAINS = ctx.pm ? BART_PM : BART;
+    const blips = [];
+    for (const ln of Object.keys(angles)) {
+      if (ln === 'BART' && !ctx.showBart) continue;
+      const src = (ln === 'BART' ? TRAINS : BUSES.filter(r => r.line === ln));
+      const up = ctx.planning ? [] : src.filter(r => r.dep >= ctx.nowMin).slice(0, 2);
+      up.forEach((r, i) => {
+        const lv = ln === 'BART' ? live.bart[r.key] : live.act[r.key];
+        const min = lv ? lv.min : r.dep - ctx.nowMin;
+        const [x, y] = pol(rOf(min), angles[ln] + (i ? 6 : 0));
+        blips.push(`${lv ? `<circle class="blip-halo" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7"/>` : ''}<circle class="blip ${ln}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i ? 5 : 7}"/>` +
+          (i === 0 ? `<text class="blip-lbl" x="${(x + 11).toFixed(1)}" y="${(y + 5).toFixed(1)}">${lv ? (min <= 0 ? 'now' : min + ' min') : fmt(r.dep).t}</text><text class="blip-sub" x="${(x + 11).toFixed(1)}" y="${(y + 17).toFixed(1)}">${esc(ln === 'BART' ? (r.direct ? 'direct' : 'transfer') : r.stop.replace(' · Bay', ' Bay'))}</text>` : ''));
+      });
+    }
+    bl.innerHTML = blips.join('') || `<text class="center-lbl" x="${cx}" y="${cy - 60}" text-anchor="middle">${ctx.planning ? 'nothing on the scope · sweep resumes at service start' : 'nothing on the scope'}</text>`;
+  }
+
+  function renderRiver(ctx) {
+    const svg = document.getElementById('riverSvg'); if (!svg) return;
+    const W = 760, H = 440, top = 30, bottom = 400, axisX = 64;
+    const lines = ctx.showBart ? LINES : LINES.filter(l => l !== 'BART');
+    const colW = (W - axisX - 12) / lines.length;
+    const BUSES = ctx.pm ? BUS_PM : BUS, TRAINS = ctx.pm ? BART_PM : BART;
+    const all = [...BUSES, ...TRAINS].filter(r => ctx.showBart || r.line !== 'BART');
+    let start, win;
+    if (ctx.planning) { start = Math.min(...all.map(r => r.dep)) - 5; win = 130; } else { start = ctx.nowMin; win = 90; }
+    const y = (m) => bottom - (m - start) / win * (bottom - top);
+    let out = '';
+    for (let m = Math.ceil(start / 15) * 15; m <= start + win; m += 15) {
+      const yy = y(m); const f = fmt(m);
+      out += `<line class="grid" x1="${axisX}" y1="${yy.toFixed(1)}" x2="${W - 12}" y2="${yy.toFixed(1)}"/><text class="grid-lbl" x="${axisX - 8}" y="${(yy + 4).toFixed(1)}" text-anchor="end">${f.t}</text>`;
+    }
+    lines.forEach((ln, i) => { out += `<text class="col-lbl" x="${(axisX + colW * i + colW / 2).toFixed(1)}" y="18" text-anchor="middle">${ln}</text>`; });
+    // Pack each column into lanes so overlapping trips sit side by side
+    const visible = all.map(r => { const lv = ln2lv(r); const dep = lv ? ctx.nowMin + lv.min : r.dep; return { r, lv, dep, arr: dep + (r.arr - r.dep) }; })
+      .filter(t => t.dep >= start - 2 && t.dep <= start + win).sort((a, b) => a.dep - b.dep);
+    const lanes = {};
+    for (const t of visible) {
+      const ls = lanes[t.r.line] = lanes[t.r.line] || [];
+      let k = ls.findIndex(end => end <= t.dep);
+      if (k === -1) { k = ls.length; ls.push(0); }
+      ls[k] = t.arr; t.lane = k;
+    }
+    for (const t of visible) {
+      const { r, lv, dep, arr } = t;
+      const i = lines.indexOf(r.line);
+      const n = lanes[r.line].length, lw = (colW - 12) / n;
+      const x = axisX + colW * i + 6 + lw * t.lane + 2, w = lw - 4;
+      const y1 = Math.max(top, y(arr)), y2 = Math.min(bottom, y(dep));
+      if (y2 - y1 < 4) continue;
+      const d = fmt(dep), a = fmt(arr);
+      out += `<rect class="band ${r.line}${lv ? ' live' : ''}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${w.toFixed(1)}" height="${(y2 - y1).toFixed(1)}"/>`;
+      if (y2 - y1 > 30 && w > 44) out += `<text class="band-lbl" x="${(x + 6).toFixed(1)}" y="${(y2 - 8).toFixed(1)}">${lv ? (lv.min <= 0 ? 'now' : lv.min + ' min') : d.t}</text>`;
+      if (y2 - y1 > 48 && w > 90) out += `<text class="band-sub" x="${(x + 6).toFixed(1)}" y="${(y2 - 24).toFixed(1)}">${esc(r.line === 'BART' ? (r.direct ? 'direct' : 'transfer') : (ctx.pm ? r.stop.replace('Salesforce TC', 'TC') : r.stop))}</text>`;
+      if (y2 - y1 > 64 && w > 60) out += `<text class="band-arr" x="${(x + 6).toFixed(1)}" y="${(y1 + 14).toFixed(1)}">arr ${a.t}</text>`;
+    }
+    out += `<line class="now" x1="${axisX}" y1="${bottom}" x2="${W - 12}" y2="${bottom}"/><text class="now-lbl" x="${axisX}" y="${bottom + 16}">${ctx.planning ? 'service window' : 'now'}</text>`;
+    svg.innerHTML = out;
+    function ln2lv(r) { return r.line === 'BART' ? live.bart[r.key] : live.act[r.key]; }
+  }
+
+  // Bay: an equirectangular projection of the real geometry into a 760x600 frame
+  const BAY = { lon0: -122.415, lon1: -122.255, lat0: 37.882, lat1: 37.782, W: 760, H: 600 };
+  const proj = ([lat, lon]) => [ (lon - BAY.lon0) / (BAY.lon1 - BAY.lon0) * BAY.W, (BAY.lat0 - lat) / (BAY.lat0 - BAY.lat1) * BAY.H ];
+  const P = (pts) => pts.map(p => proj(p).map(v => v.toFixed(1)).join(',')).join(' ');
+  // Simplified shorelines (lat, lon), hand-traced
+  const EASTBAY = [[37.882,-122.324],[37.874,-122.320],[37.868,-122.314],[37.862,-122.318],[37.856,-122.312],[37.849,-122.306],[37.843,-122.303],[37.839,-122.311],[37.836,-122.319],[37.831,-122.320],[37.827,-122.312],[37.823,-122.322],[37.818,-122.332],[37.811,-122.336],[37.803,-122.342],[37.795,-122.336],[37.788,-122.330],[37.782,-122.332],[37.782,-122.255],[37.882,-122.255]];
+  const SF = [[37.882,-122.415],[37.810,-122.415],[37.808,-122.410],[37.805,-122.404],[37.800,-122.397],[37.795,-122.392],[37.790,-122.388],[37.782,-122.386],[37.782,-122.415]];
+  const TI = [[37.832,-122.376],[37.829,-122.366],[37.822,-122.363],[37.813,-122.360],[37.806,-122.365],[37.808,-122.373],[37.816,-122.375],[37.824,-122.379]];
+  function renderBay(ctx) {
+    const svg = document.getElementById('baySvg'); if (!svg) return;
+    const lines = ctx.showBart ? LINES : LINES.filter(l => l !== 'BART');
+    let out = `<polygon class="land" points="${P(EASTBAY)}"/><polygon class="land" points="${P(SF)}"/><polygon class="land" points="${P(TI)}"/>`;
+    out += `<polyline class="shore" points="${P(EASTBAY.slice(0, 18))}"/><polyline class="shore" points="${P(SF.slice(1, 8))}"/>`;
+    for (const ln of lines) out += `<polyline class="rte ${ln}" points="${P(SHAPES[ln])}"/>`;
+    for (const ln of lines) { const [x, y] = proj(STOP_LL[ln]); out += `<circle class="pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3"/>`; }
+    { const [x, y] = proj(TC_LL); out += `<circle class="pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/>`; }
+    for (const v of ctx.allVeh) {
+      let ll = (v.lat && v.lon && !Number.isNaN(v.lat)) ? [v.lat, v.lon] : pointAlong(ctx.pm ? [...SHAPES[v.line]].reverse() : SHAPES[v.line], v.frac);
+      const [x, y] = proj(ll);
+      out += `<circle class="veh-halo ${v.line}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6"/><circle class="veh ${v.line}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"/>`;
+    }
+    const [bx, by] = proj([37.850, -122.262]); const [sx, sy] = proj([37.786, -122.412]);
+    out += `<text class="place" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" text-anchor="end">Berkeley</text><text class="place" x="${sx.toFixed(1)}" y="${(sy).toFixed(1)}">San Francisco</text>`;
+    const [ox, oy] = proj([37.812, -122.283]); out += `<text class="place small" x="${ox.toFixed(1)}" y="${oy.toFixed(1)}">Oakland</text>`;
+    const [wx, wy] = proj([37.835, -122.360]); out += `<text class="place small" x="${wx.toFixed(1)}" y="${wy.toFixed(1)}" text-anchor="middle">Bay Bridge</text>`;
+    svg.innerHTML = out;
+  }
+
+  function renderHeroes(ctx) {
+    const look = document.documentElement.dataset.look || 'classic';
+    if (look === 'real') renderReal(ctx);
+    else if (look === 'strip') renderStrips(ctx);
+    else if (look === 'radar') renderRadar(ctx);
+    else if (look === 'river') renderRiver(ctx);
+    else if (look === 'bay') renderBay(ctx);
   }
 
   // ---------- Morning / Evening ----------
@@ -935,6 +1300,7 @@
     if (persist) { try { localStorage.setItem('look', look); } catch (e) {} }
     flipOnce = true;
     render();
+    if (look === 'real' && realMap) setTimeout(() => realMap.invalidateSize(), 60);
   }
   document.getElementById('picker').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-look]'); if (b) setLook(b.dataset.look, true);
