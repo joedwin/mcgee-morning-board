@@ -606,7 +606,7 @@
       <text class="lbl" x="150" y="105">J · Sacramento &amp; University</text>
       <text class="lbl small" x="150" y="141">0.5 mi · via Ashby &amp; Emeryville</text>
       <circle class="station" cx="150" cy="185" r="7"/>
-      <text class="lbl" x="150" y="170">FS · Shattuck &amp; Cedar</text>
+      <text class="lbl" x="150" y="170">FS · University &amp; Sacramento</text>
       <text class="lbl small" x="150" y="206">0.5 mi · via University Ave</text>
       <circle class="station" cx="150" cy="250" r="7"/>
       <text class="lbl" x="150" y="235">G · San Pablo &amp; Cedar</text>
@@ -670,17 +670,17 @@
     <div>
       <h2>Stops</h2>
       <ul class="stops-list">
-        <li><span class="dot line J">J</span><span><b>Sacramento St &amp; University Ave</b> · 0.5 mi. First stop on the line, so you'll always get a seat.</span></li>
-        <li><span class="dot line FS">FS</span><span><b>Shattuck Ave &amp; Cedar St</b> · 0.5 mi. Only two trips a morning; University &amp; MLK is the same bus three minutes later.</span></li>
-        <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Not a printed timepoint, so the ~ times are estimated from the Solano and University timepoints. Give it two extra minutes.</span></li>
+        <li><span class="dot line J">J</span><span><b>Sacramento St &amp; University Ave</b> · 0.5 mi. Boards on Sacramento St (stop 55998). First stop on the line, so you'll always get a seat.</span></li>
+        <li><span class="dot line FS">FS</span><span><b>University Ave &amp; Sacramento St</b> · 0.5 mi. Same corner as the J, boarding on University Ave westbound (stop 55722): the same distance as Shattuck &amp; Cedar without the climb. The bus comes down Shattuck from Solano &amp; Colusa and passes Shattuck &amp; Cedar at 6:19 and 8:01; Sacramento isn't a printed timepoint, so the ~ times are estimated between there and the University &amp; 6th timepoint (6:27, 8:09). Be there a couple of minutes early. Only two trips a morning.</span></li>
+        <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Stop 59600. Not a printed timepoint, so the ~ times are estimated from the Solano and University timepoints. Give it two extra minutes.</span></li>
         <li class="bart-only"><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line direct to Montgomery every 20 min; in between, an Orange train with a cross-platform transfer to Yellow at MacArthur takes the same 27 min. Montgomery to the tower is a 5-minute walk.</span></li>
       </ul>
     </div>
     <div>
       <h2>About these times</h2>
-      <p>Evening trips leave the Salesforce Transit Center (J from Bay 35, G from Bay 12) and BART from Montgomery St. Arrival is the closest stop to home; ~ marks stops that aren't printed timepoints, estimated from the nearest one.</p>
+      <p>Evening trips leave the Salesforce Transit Center (J from Bay 35, FS from Bay 10, G from Bay 12) and BART from Montgomery St. Arrival is the closest stop to home (the FS drops you at University &amp; Sacramento eastbound, stop 56667); ~ marks stops that aren't printed timepoints, estimated from the nearest one.</p>
       <p>J, FS and G are express lines with no local riders and no weekend service. Distances are straight-line from home.</p>
-      <p>Schedules: <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a> (Dec 2023), <a href="https://www.actransit.org/sites/default/files/timetable_files/FS-2021_12_05.pdf">FS</a> (Dec 2021), <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> (Feb 2026), all posted as current on <a href="https://www.actransit.org/transbay">actransit.org</a>; BART times from the <a href="https://www.bart.gov/schedules">BART schedule</a> for North Berkeley → Montgomery.</p>
+      <p>Schedules: <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a> (Dec 2023), <a href="https://www.actransit.org/bus-lines-schedules/fs">FS</a> (current Realign schedule, from the actransit.org stop pages, Sep 2026), <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> (Feb 2026), all posted as current on <a href="https://www.actransit.org/transbay">actransit.org</a>; BART times from the <a href="https://www.bart.gov/schedules">BART schedule</a> for North Berkeley → Montgomery.</p>
     </div>
   </div>
 
@@ -700,14 +700,14 @@
 <script>
   // ---------- Schedule data ----------
   const BUS = [
-    { key:'J-350',  dep: 5*60+50, line: 'J',  stop: 'Sacramento & University', dist: '0.5 mi', lead: 8,  arr: 6*60+24, approx: false, stpid: '792', arrLbl: 'Salesforce TC' },
-    { key:'FS-377', dep: 6*60+17, line: 'FS', stop: 'Shattuck & Cedar',        dist: '0.5 mi', lead: 8,  arr: 6*60+50, approx: false, stpid: '652', arrLbl: 'Salesforce TC' },
-    { key:'G-443',  dep: 7*60+23, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 7*60+50, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
-    { key:'G-477',  dep: 7*60+57, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+24, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
-    { key:'FS-479', dep: 7*60+59, line: 'FS', stop: 'Shattuck & Cedar',        dist: '0.5 mi', lead: 8,  arr: 8*60+30, approx: false, stpid: '652', arrLbl: 'Salesforce TC' },
-    { key:'G-507',  dep: 8*60+27, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+54, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
-    { key:'G-536',  dep: 8*60+56, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+23, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
-    { key:'G-558',  dep: 9*60+18, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+45, approx: true,  stpid: '625', arrLbl: 'Salesforce TC' },
+    { key:'J-350',  dep: 5*60+50, line: 'J',  stop: 'Sacramento & University', dist: '0.5 mi', lead: 8,  arr: 6*60+24, approx: false, stpid: '55998', arrLbl: 'Salesforce TC' },
+    { key:'FS-383', dep: 6*60+23, line: 'FS', stop: 'University & Sacramento', dist: '0.5 mi', lead: 8,  arr: 6*60+50, approx: true,  stpid: '55722', arrLbl: 'Salesforce TC' },
+    { key:'G-443',  dep: 7*60+23, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 7*60+50, approx: true,  stpid: '59600', arrLbl: 'Salesforce TC' },
+    { key:'G-477',  dep: 7*60+57, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+24, approx: true,  stpid: '59600', arrLbl: 'Salesforce TC' },
+    { key:'FS-485', dep: 8*60+5,  line: 'FS', stop: 'University & Sacramento', dist: '0.5 mi', lead: 8,  arr: 8*60+30, approx: true,  stpid: '55722', arrLbl: 'Salesforce TC' },
+    { key:'G-507',  dep: 8*60+27, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 8*60+54, approx: true,  stpid: '59600', arrLbl: 'Salesforce TC' },
+    { key:'G-536',  dep: 8*60+56, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+23, approx: true,  stpid: '59600', arrLbl: 'Salesforce TC' },
+    { key:'G-558',  dep: 9*60+18, line: 'G',  stop: 'San Pablo & Cedar',       dist: '0.9 mi', lead: 11, arr: 9*60+45, approx: true,  stpid: '59600', arrLbl: 'Salesforce TC' },
   ];
   const BART = [];
   for (let h = 5; h <= 9; h++) {
@@ -719,17 +719,17 @@
   }
   // Evening: leaving the Salesforce Transit Center. Arrival is the closest stop to home on each line.
   const BUS_PM = [
-    { key:'G-970',  dep: 16*60+10, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 16*60+46, approx: true,  stpid: '5829', arrLbl: 'San Pablo & Cedar' },
-    { key:'FS-990', dep: 16*60+30, line: 'FS', stop: 'Salesforce TC',          dist: '', arr: 17*60+23, approx: true,  stpid: '5828', arrLbl: 'University & MLK' },
-    { key:'G-1000', dep: 16*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 17*60+16, approx: true,  stpid: '5829', arrLbl: 'San Pablo & Cedar' },
-    { key:'J-1005', dep: 16*60+45, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 17*60+27, approx: false, stpid: '5847', arrLbl: 'Sacramento & University' },
-    { key:'G-1030', dep: 17*60+10, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 17*60+56, approx: true,  stpid: '5829', arrLbl: 'San Pablo & Cedar' },
-    { key:'J-1040', dep: 17*60+20, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 18*60+8,  approx: false, stpid: '5847', arrLbl: 'Sacramento & University' },
-    { key:'G-1060', dep: 17*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 18*60+26, approx: true,  stpid: '5829', arrLbl: 'San Pablo & Cedar' },
-    { key:'J-1100', dep: 18*60+20, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 19*60+3,  approx: false, stpid: '5847', arrLbl: 'Sacramento & University' },
-    { key:'FS-1110',dep: 18*60+30, line: 'FS', stop: 'Salesforce TC',          dist: '', arr: 19*60+13, approx: true,  stpid: '5828', arrLbl: 'University & MLK' },
-    { key:'G-1120', dep: 18*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 19*60+26, approx: true,  stpid: '5829', arrLbl: 'San Pablo & Cedar' },
-    { key:'J-1150', dep: 19*60+10, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 19*60+48, approx: false, stpid: '5847', arrLbl: 'Sacramento & University' },
+    { key:'G-970',  dep: 16*60+10, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 16*60+46, approx: true,  stpid: '50012', arrLbl: 'San Pablo & Cedar' },
+    { key:'FS-990', dep: 16*60+30, line: 'FS', stop: 'Salesforce TC · Bay 10', dist: '', arr: 17*60+20, approx: true,  stpid: '50010', arrLbl: 'University & Sacramento' },
+    { key:'G-1000', dep: 16*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 17*60+16, approx: true,  stpid: '50012', arrLbl: 'San Pablo & Cedar' },
+    { key:'J-1005', dep: 16*60+45, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 17*60+27, approx: false, stpid: '50035', arrLbl: 'Sacramento & University' },
+    { key:'G-1030', dep: 17*60+10, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 17*60+56, approx: true,  stpid: '50012', arrLbl: 'San Pablo & Cedar' },
+    { key:'J-1040', dep: 17*60+20, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 18*60+8,  approx: false, stpid: '50035', arrLbl: 'Sacramento & University' },
+    { key:'G-1060', dep: 17*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 18*60+26, approx: true,  stpid: '50012', arrLbl: 'San Pablo & Cedar' },
+    { key:'J-1100', dep: 18*60+20, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 19*60+3,  approx: false, stpid: '50035', arrLbl: 'Sacramento & University' },
+    { key:'FS-1110',dep: 18*60+30, line: 'FS', stop: 'Salesforce TC · Bay 10', dist: '', arr: 19*60+10, approx: true,  stpid: '50010', arrLbl: 'University & Sacramento' },
+    { key:'G-1120', dep: 18*60+40, line: 'G',  stop: 'Salesforce TC · Bay 12', dist: '', arr: 19*60+26, approx: true,  stpid: '50012', arrLbl: 'San Pablo & Cedar' },
+    { key:'J-1150', dep: 19*60+10, line: 'J',  stop: 'Salesforce TC · Bay 35', dist: '', arr: 19*60+48, approx: false, stpid: '50035', arrLbl: 'Sacramento & University' },
   ];
   // BART from Montgomery: Red direct at :08 :28 :48, Yellow with a 19th St transfer at :19 :39 :59. 26 min to North Berkeley.
   const BART_PM = [];
@@ -743,23 +743,23 @@
   }
   const BART_KEY = 'MW9S-E7SL-26DU-VV8V';
   const bartUrl = () => 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=' + (isEvening() ? 'MONT' : 'NBRK') + '&key=' + BART_KEY + '&json=y';
-  const actUrl = () => 'https://api.actransit.org/transit/actrealtime/prediction?stpid=' + (isEvening() ? '5847,5828,5829' : '792,652,625') + '&rt=J,FS,G&top=20&tmres=m&token=';
+  const actUrl = () => 'https://api.actransit.org/transit/actrealtime/prediction?stpid=' + (isEvening() ? '50035,50010,50012' : '55998,55722,59600') + '&rt=J,FS,G&top=20&tmres=m&token=';
   const isEvening = () => document.documentElement.dataset.dir === 'pm';
   const HOME = { lat: 37.87, lon: -122.28 };  // rounded: only used for sunrise math
-  const SHAPES = {"FS":[[37.87854,-122.26923],[37.87219,-122.26842],[37.86911,-122.29254],[37.86665,-122.30455],[37.86676,-122.30508],[37.86722,-122.3052],[37.86743,-122.3047],[37.86709,-122.3042],[37.86506,-122.30338],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82807,-122.29524],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.78584,-122.39125],[37.78513,-122.39298],[37.78524,-122.39452],[37.78684,-122.39655],[37.78767,-122.39831],[37.78805,-122.39853],[37.78867,-122.3978]],"G":[[37.87542,-122.29433],[37.86914,-122.29221],[37.8667,-122.30437],[37.86673,-122.30501],[37.86729,-122.30522],[37.8671,-122.30421],[37.86507,-122.30337],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82819,-122.29509],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.7857,-122.39146],[37.78511,-122.39311],[37.78528,-122.3946],[37.78793,-122.39858],[37.78874,-122.3977]],"J":[[37.87007,-122.28208],[37.86231,-122.2813],[37.86095,-122.28071],[37.85346,-122.2792],[37.85215,-122.28715],[37.85102,-122.29109],[37.85008,-122.29085],[37.8495,-122.29234],[37.84678,-122.29149],[37.84619,-122.29648],[37.84038,-122.2947],[37.83854,-122.2947],[37.83816,-122.29702],[37.83965,-122.29772],[37.83967,-122.29726],[37.83178,-122.29421],[37.82957,-122.2941],[37.82809,-122.29517],[37.82702,-122.29805],[37.82551,-122.30485],[37.82407,-122.31766],[37.82258,-122.32246],[37.8215,-122.33334],[37.81883,-122.35088],[37.81803,-122.35363],[37.81376,-122.36132],[37.78584,-122.39115],[37.78504,-122.39334],[37.78548,-122.39501],[37.78777,-122.39832],[37.78822,-122.3983],[37.78925,-122.3969]],"BART":[[37.873967,-122.28344],[37.852803,-122.270062],[37.829065,-122.26704],[37.80835,-122.268602],[37.803768,-122.27145],[37.804872,-122.29514],[37.792874,-122.39702],[37.789405,-122.401066]]};
-  const STOP_LL = { J: [37.87007, -122.28208], FS: [37.87854, -122.26923], G: [37.87542, -122.29433], BART: [37.873967, -122.28344] };
+  const SHAPES = {"FS":[[37.87044,-122.2821],[37.86911,-122.29254],[37.86665,-122.30455],[37.86676,-122.30508],[37.86722,-122.3052],[37.86743,-122.3047],[37.86709,-122.3042],[37.86506,-122.30338],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82807,-122.29524],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.78584,-122.39125],[37.78513,-122.39298],[37.78524,-122.39452],[37.78684,-122.39655],[37.78767,-122.39831],[37.78805,-122.39853],[37.78867,-122.3978]],"G":[[37.87542,-122.29433],[37.86914,-122.29221],[37.8667,-122.30437],[37.86673,-122.30501],[37.86729,-122.30522],[37.8671,-122.30421],[37.86507,-122.30337],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82819,-122.29509],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.7857,-122.39146],[37.78511,-122.39311],[37.78528,-122.3946],[37.78793,-122.39858],[37.78874,-122.3977]],"J":[[37.87007,-122.28208],[37.86231,-122.2813],[37.86095,-122.28071],[37.85346,-122.2792],[37.85215,-122.28715],[37.85102,-122.29109],[37.85008,-122.29085],[37.8495,-122.29234],[37.84678,-122.29149],[37.84619,-122.29648],[37.84038,-122.2947],[37.83854,-122.2947],[37.83816,-122.29702],[37.83965,-122.29772],[37.83967,-122.29726],[37.83178,-122.29421],[37.82957,-122.2941],[37.82809,-122.29517],[37.82702,-122.29805],[37.82551,-122.30485],[37.82407,-122.31766],[37.82258,-122.32246],[37.8215,-122.33334],[37.81883,-122.35088],[37.81803,-122.35363],[37.81376,-122.36132],[37.78584,-122.39115],[37.78504,-122.39334],[37.78548,-122.39501],[37.78777,-122.39832],[37.78822,-122.3983],[37.78925,-122.3969]],"BART":[[37.873967,-122.28344],[37.852803,-122.270062],[37.829065,-122.26704],[37.80835,-122.268602],[37.803768,-122.27145],[37.804872,-122.29514],[37.792874,-122.39702],[37.789405,-122.401066]]};
+  const STOP_LL = { J: [37.87007, -122.28208], FS: [37.87044, -122.2821], G: [37.87542, -122.29433], BART: [37.873967, -122.28344] };
   const TC_LL = [37.7893, -122.3972], MONT_LL = [37.789405, -122.401066];
   // Strip-map ticks: [fraction of the ride, name], per line and direction
   const TICKS = {
     am: {
       J:    [[0,'Sacramento & University'],[.26,'Ashby & San Pablo'],[.41,'65th & Hollis'],[.56,'Public Market'],[1,'Salesforce TC']],
-      FS:   [[0,'Shattuck & Cedar'],[.06,'University & Shattuck'],[.30,'6th & University'],[.58,'Toll Plaza'],[1,'Salesforce TC']],
+      FS:   [[0,'University & Sacramento'],[.05,'University & San Pablo'],[.09,'6th & University'],[.47,'Toll Plaza'],[1,'Salesforce TC']],
       G:    [[0,'San Pablo & Cedar'],[.07,'University & San Pablo'],[.15,'6th & University'],[1,'Salesforce TC']],
       BART: [[0,'North Berkeley'],[.11,'Ashby'],[.26,'MacArthur'],[.37,'19th St'],[.44,'12th St'],[.56,'West Oakland'],[.89,'Embarcadero'],[1,'Montgomery']],
     },
     pm: {
       J:    [[0,'Salesforce TC'],[.40,'40th & Hollis'],[.52,'Powell Plaza'],[.71,'65th & Hollis'],[.83,'Ashby & San Pablo'],[1,'Sacramento & University']],
-      FS:   [[0,'Salesforce TC'],[.19,'Toll Plaza'],[.79,'6th & University'],[1,'University & MLK']],
+      FS:   [[0,'Salesforce TC'],[.53,'Toll Plaza'],[.91,'6th & University'],[.95,'University & San Pablo'],[1,'University & Sacramento']],
       G:    [[0,'Salesforce TC'],[.28,'Toll Plaza'],[.83,'6th & University'],[.92,'University & San Pablo'],[1,'San Pablo & Cedar']],
       BART: [[0,'Montgomery'],[.08,'Embarcadero'],[.42,'West Oakland'],[.54,'12th St'],[.62,'19th St'],[.73,'MacArthur'],[.88,'Ashby'],[1,'North Berkeley']],
     },
@@ -892,8 +892,10 @@
   }
   // Bus positions: the vehicle feed gives distance along its pattern (pdist, feet); the pattern lists each stop's pdist.
   const patternCache = {};
-  const HOME_STOP = { J: { am: '792', pm: '5847' }, FS: { am: '652', pm: '5828' }, G: { am: '625', pm: '5829' } };
-  const TC_STOP =   { J: { am: '5847', pm: '792' }, FS: { am: '5828', pm: '652' }, G: { am: '5829', pm: '625' } };
+  // Boarding stop per direction, then the far end of the leg: AC Transit public stop IDs, which the real-time API uses.
+  // Morning: home stop -> Salesforce TC Bay 19. Evening: TC bay -> closest stop to home (J's terminal shares its morning stop).
+  const HOME_STOP = { J: { am: '55998', pm: '50035' }, FS: { am: '55722', pm: '50010' }, G: { am: '59600', pm: '50012' } };
+  const TC_STOP =   { J: { am: '50019', pm: '55998' }, FS: { am: '50019', pm: '56667' }, G: { am: '50019', pm: '55165' } };
   async function getPattern(pid, rt, token) {
     if (patternCache[pid]) return patternCache[pid];
     const res = await fetch('https://api.actransit.org/transit/actrealtime/pattern?pid=' + pid + '&token=' + encodeURIComponent(token), { cache: 'force-cache' });
@@ -916,7 +918,7 @@
         const ptr = await getPattern(v.pid, rt, token); if (!ptr) continue;
         const pts = ptr.pt || [];
         const a = pts.find(p => p.stpid === HOME_STOP[rt][dir]);
-        const b = pts.find(p => p.stpid === TC_STOP[rt][dir]);
+        const b = pts.find(p => p.stpid === TC_STOP[rt][dir]) || pts.filter(p => p.typ === 'S').pop();  // else the pattern's last stop
         if (!a || !b) continue;                       // this pattern runs the other way
         const lo = Math.min(a.pdist, b.pdist), hi = Math.max(a.pdist, b.pdist);
         const pd = Number(v.pdist);
