@@ -573,7 +573,7 @@
   .rt .tm { font-family: var(--font-digits); font-size: 16px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
   .rt .tm i { font-style: normal; font-size: 12px; margin-right: 1px; }
   .rt li.board .tm, .rt li.dest .tm { color: var(--ink); font-size: 18px; font-weight: 700; }
-  .rt-veh { position: absolute; left: 4px; z-index: 2; display: flex; align-items: center; gap: 9px; transform: translateY(-50%); pointer-events: none; }
+  .rt-veh { position: absolute; left: 4px; z-index: 2; display: flex; align-items: center; gap: 9px; transform: translateY(-50%); pointer-events: none; transition: top 1.6s cubic-bezier(.25,.8,.25,1); }
   .rt-veh .veh-dot { position: relative; width: 22px; height: 22px; border-radius: 50%; background: var(--rail); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--rail); }
   .rt.BART .rt-veh .veh-dot { border-radius: 6px; }
   .rt-veh .veh-lbl { font-size: 11px; font-weight: 700; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 2px 8px; border-radius: 999px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
@@ -582,6 +582,26 @@
   .rt-veh.mine .veh-dot::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--rail); animation: ring 2s ease-out infinite; }
   .rt-veh.late .veh-lbl { color: var(--amber); }
   .rt-veh.sched .veh-lbl { color: var(--muted); font-weight: 600; }
+  .rt-veh.sched .veh-dot { background: var(--surface); border: 3px dashed var(--rail); box-shadow: none; }
+  .rt-veh.sched .veh-dot::after { display: none; }
+  /* Live status / go-live box in the trip sheet */
+  .trip-live { margin: 12px 0 0; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--bg); font-size: 13px; line-height: 1.4; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+  .trip-live .tl-row { display: flex; align-items: baseline; gap: 8px; }
+  .trip-live .tl-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--gone); transform: translateY(-1px); }
+  .trip-live.on .tl-dot { background: var(--live); animation: pulse 2s ease-in-out infinite; }
+  .trip-live.on b { color: var(--live); }
+  .trip-live.err .tl-dot { background: var(--amber); }
+  .trip-live.off { background: var(--next-bg); border-color: var(--next-rule); color: var(--ink); }
+  .trip-live.off b { font-size: 15px; }
+  .trip-live p { margin: 0; }
+  .trip-live .tl-form { display: flex; gap: 8px; margin: 0; }
+  .trip-live input { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); }
+  .trip-live button { flex: none; font: inherit; font-weight: 700; padding: 8px 14px; border: 0; border-radius: 6px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .trip-live a { align-self: flex-start; color: var(--live); font-weight: 600; text-decoration: none; border-bottom: 1px solid currentColor; }
+  .trip-live details summary { cursor: pointer; color: var(--live); font-weight: 600; }
+  .trip-live details .tl-form { margin-top: 8px; }
+  .setup-link { margin: 6px 0 0; }
+  .setup-link button { font: inherit; font-weight: 600; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); color: var(--ink); cursor: pointer; }
   @keyframes ring { 0% { transform: scale(.7); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
   .trip-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
   .trip-note a { color: var(--live); text-decoration: none; border-bottom: 1px solid currentColor; }
@@ -627,8 +647,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .row, body { transition: none; }
-    .pill.on .dot, .hero-map .bus.live, .hero-map .veh-halo, .hero-radar .sweep, .hero-radar .blip-halo, .hero-bay .veh-halo, .rt-veh.mine .veh-dot::after, .trip-panel { animation: none; }
-    .strip .veh, .hero-river .band { transition: none; }
+    .pill.on .dot, .hero-map .bus.live, .hero-map .veh-halo, .hero-radar .sweep, .hero-radar .blip-halo, .hero-bay .veh-halo, .rt-veh.mine .veh-dot::after, .trip-panel, .trip-live.on .tl-dot { animation: none; }
+    .strip .veh, .hero-river .band, .rt-veh { transition: none; }
     :root[data-look="flap"] .flip .ch { animation: none; }
     :root[data-look="type"] .row.gone { animation: none; }
   }
@@ -775,11 +795,12 @@
   </div>
 
     <h2 class="sub-h">Live predictions</h2>
-    <p>BART real-time departures come from BART's public API. AC Transit needs a free personal token: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the token here. It stays in this browser only.</p>
+    <p>BART real-time departures come from BART's public API. Live bus times and positions need a free personal AC Transit key: <a href="https://api.actransit.org/transit/Account/Register">register at api.actransit.org</a>, then paste the key here or in any bus trip's sheet. It stays in this browser only.</p>
     <div class="field">
-      <input type="text" id="actToken" placeholder="AC Transit API token" autocomplete="off" spellcheck="false" aria-label="AC Transit API token">
+      <input type="text" id="actToken" placeholder="AC Transit API key" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="AC Transit API key">
       <button type="button" id="saveToken">Save</button>
     </div>
+    <p class="setup-link" id="setupLinkRow" hidden>Set up another device in one tap: <button type="button" id="copySetup">Copy setup link</button> <span id="copySetupMsg"></span></p>
     <div class="feed">
       <b>BART</b><span id="bartFeed">Not fetched yet</span>
       <b>AC Transit</b><span id="actFeed">No token saved</span>
@@ -841,7 +862,7 @@
   }
   const BART_KEY = 'MW9S-E7SL-26DU-VV8V';
   const bartUrl = () => 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=' + (isEvening() ? 'MONT' : 'NBRK') + '&key=' + BART_KEY + '&json=y';
-  const actUrl = () => 'https://api.actransit.org/transit/actrealtime/prediction?stpid=' + (isEvening() ? '50035,50010,50012' : '55998,55722,59600') + '&rt=J,FS,G&top=20&tmres=m&token=';
+  const predPath = () => 'prediction?stpid=' + (isEvening() ? '50035,50010,50012' : '55998,55722,59600') + '&rt=J,FS,G&top=20&tmres=m';
   const isEvening = () => document.documentElement.dataset.dir === 'pm';
   const HOME = { lat: 37.87, lon: -122.28 };  // rounded: only used for sunrise math
   const SHAPES = {"FS":[[37.87044,-122.2821],[37.86911,-122.29254],[37.86665,-122.30455],[37.86676,-122.30508],[37.86722,-122.3052],[37.86743,-122.3047],[37.86709,-122.3042],[37.86506,-122.30338],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82807,-122.29524],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.78584,-122.39125],[37.78513,-122.39298],[37.78524,-122.39452],[37.78684,-122.39655],[37.78767,-122.39831],[37.78805,-122.39853],[37.78867,-122.3978]],"G":[[37.87542,-122.29433],[37.86914,-122.29221],[37.8667,-122.30437],[37.86673,-122.30501],[37.86729,-122.30522],[37.8671,-122.30421],[37.86507,-122.30337],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82819,-122.29509],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.7857,-122.39146],[37.78511,-122.39311],[37.78528,-122.3946],[37.78793,-122.39858],[37.78874,-122.3977]],"J":[[37.87007,-122.28208],[37.86231,-122.2813],[37.86095,-122.28071],[37.85346,-122.2792],[37.85215,-122.28715],[37.85102,-122.29109],[37.85008,-122.29085],[37.8495,-122.29234],[37.84678,-122.29149],[37.84619,-122.29648],[37.84038,-122.2947],[37.83854,-122.2947],[37.83816,-122.29702],[37.83965,-122.29772],[37.83967,-122.29726],[37.83178,-122.29421],[37.82957,-122.2941],[37.82809,-122.29517],[37.82702,-122.29805],[37.82551,-122.30485],[37.82407,-122.31766],[37.82258,-122.32246],[37.8215,-122.33334],[37.81883,-122.35088],[37.81803,-122.35363],[37.81376,-122.36132],[37.78584,-122.39115],[37.78504,-122.39334],[37.78548,-122.39501],[37.78777,-122.39832],[37.78822,-122.3983],[37.78925,-122.3969]],"BART":[[37.873967,-122.28344],[37.852803,-122.270062],[37.829065,-122.26704],[37.80835,-122.268602],[37.803768,-122.27145],[37.804872,-122.29514],[37.792874,-122.39702],[37.789405,-122.401066]]};
@@ -976,8 +997,56 @@
   const nowMinutes = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
   const chars = (t, rowIndex) => t.split('').map((c, i) => `<span class="ch${c === ':' ? ' colon' : ''}" style="--i:${i};--r:${rowIndex}">${c}</span>`).join('');
 
-  const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null, vehicles: { bart: [], act: [] } };
+  const live = { bart: {}, act: {}, bartAt: null, actAt: null, bartErr: null, actErr: null, vehAt: null, vehErr: null, lastRefresh: 0, vehicles: { bart: [], act: [], actAll: [] } };
   const BART_RIDE = { am: 27, pm: 26 };
+
+  // ---------- AC Transit requests ----------
+  // Plain fetch first. If the browser blocks it (the API may not send CORS headers), fall back to JSONP,
+  // which every actrealtime endpoint supports through its callback parameter.
+  const ACT_BASE = 'https://api.actransit.org/transit/actrealtime/';
+  let actMode = 'fetch', jsonpSeq = 0;
+  const getToken = () => { try { return localStorage.getItem('actToken') || ''; } catch (e) { return ''; } };
+  function jsonp(url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const cb = '__act' + (++jsonpSeq);
+      const s = document.createElement('script');
+      let done = false;
+      const finish = (err, data) => {
+        if (done) return;
+        done = true; clearTimeout(timer); s.remove();
+        window[cb] = () => {};                          // a late reply lands on a no-op, then the name is freed
+        setTimeout(() => { try { delete window[cb]; } catch (e) { window[cb] = undefined; } }, 60000);
+        if (err) reject(err); else resolve(data);
+      };
+      const timer = setTimeout(() => finish(new Error('no answer')), timeoutMs || 12000);
+      window[cb] = (data) => finish(null, data);
+      s.onerror = () => finish(new Error('blocked, or the key was rejected'));
+      s.onload = () => setTimeout(() => finish(new Error('unexpected reply')), 0);   // loaded but never called back
+      s.src = url + '&callback=' + cb;
+      document.head.appendChild(s);
+    });
+  }
+  async function actGet(path, token) {
+    const url = ACT_BASE + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+    if (actMode === 'fetch') {
+      let res = null;
+      try { res = await fetch(url, { cache: 'no-store' }); } catch (e) { actMode = 'jsonp'; }   // blocked by the browser, or offline
+      if (res) {
+        if (res.status === 401 || res.status === 403) throw new Error('key rejected');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }
+    }
+    try { return await jsonp(url); }
+    catch (e) { actMode = 'fetch'; throw e; }       // neither route worked this round: start over next round
+  }
+  // "20260923 08:05" or "20260923 08:05:12", local time
+  function parseStamp(s) {
+    const m = /^(\d{4})(\d{2})(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?/.exec(s || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) : null;
+  }
+  const isTrue = (x) => x === true || x === 'true';
+  const sameId = (x, y) => x != null && y != null && x !== '' && String(x) === String(y);
 
   // ---------- Live feeds ----------
   function attachLive(rows, estimates, store, tolerance) {
@@ -985,13 +1054,14 @@
     for (const k in store) delete store[k];
     for (const e of estimates) {
       const predicted = now + e.min;
-      let best = null, bestD = tolerance + 1;
+      const target = e.sched != null ? e.sched : predicted;      // AC Transit sends the trip's scheduled time: match on that
+      let best = null, bestD = (e.sched != null ? 6 : tolerance) + 1;
       for (const r of rows) {
         if (e.type && r.type !== e.type) continue;
-        const d = Math.abs(r.dep - predicted);
+        const d = Math.abs(r.dep - target);
         if (d < bestD && !(store[r.key])) { best = r; bestD = d; }
       }
-      if (best) store[best.key] = { min: e.min, late: e.late || predicted - best.dep >= 3, vid: e.vid, trip: e.trip };
+      if (best) store[best.key] = { min: e.min, late: e.late || predicted - (e.sched != null ? e.sched : best.dep) >= 3, vid: e.vid, trip: e.trip, tripid: e.tripid };
     }
   }
   async function fetchBart() {
@@ -1045,37 +1115,40 @@
     }
   }
   async function fetchAct() {
-    let token = '';
-    try { token = localStorage.getItem('actToken') || ''; } catch (e) {}
-    if (!token) { live.actErr = 'no-token'; live.actAt = null; return; }
+    const token = getToken();
+    if (!token) { live.actErr = 'no-token'; live.actAt = null; live.vehAt = null; live.vehicles.act = []; live.vehicles.actAll = []; return; }
     try {
-      const res = await fetch(actUrl() + encodeURIComponent(token), { cache: 'no-store' });
-      if (res.status === 401) throw new Error('Token rejected');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      const prds = ((data['bustime-response'] || {}).prd) || [];
+      const data = await actGet(predPath(), token);
+      const resp = data && data['bustime-response'];
+      if (!resp) throw new Error('unexpected reply');
+      if (!resp.prd && (resp.error || []).some(e => /key|token|auth/i.test(e.msg || ''))) throw new Error('key rejected');
+      const prds = resp.prd || [];
       const now = new Date();
       const ests = [];
-      for (const p of prds) {
-        const dir = ((p.rtdir || '') + ' ' + (p.des || '')).toLowerCase();
-        if (!isEvening() && dir.trim() && !/san francisco|transbay|salesforce|westbound/.test(dir)) continue;
+      for (const p of prds) {                          // the stop ids are one-directional, so every prediction here is our way
         let min = parseInt(p.prdctdn, 10);
         if (Number.isNaN(min)) {
           if (/due/i.test(p.prdctdn || '')) min = 0;
-          else if (p.prdtm) {
-            const m = /^(\d{4})(\d{2})(\d{2}) (\d{2}):(\d{2})/.exec(p.prdtm);
-            if (m) min = Math.round((new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) - now) / 60000);
-          }
+          else { const at = parseStamp(p.prdtm); if (at) min = Math.max(0, Math.round((at - now) / 60000)); }
         }
-        if (Number.isNaN(min) || min === undefined) continue;
-        ests.push({ type: p.rt + '@' + p.stpid, min, late: !!p.dly, vid: p.vid, trip: p.tatripid });
+        if (!Number.isFinite(min)) continue;
+        const sd = parseStamp(p.schdtm);
+        ests.push({ type: p.rt + '@' + p.stpid, min, late: isTrue(p.dly), vid: p.vid, trip: p.tatripid, tripid: p.tripid,
+                    sched: sd ? sd.getHours() * 60 + sd.getMinutes() : null });
       }
       attachLive((isEvening() ? BUS_PM : BUS).map(r => ({ ...r, type: r.line + '@' + r.stpid })), ests, live.act, 15);
       live.actAt = new Date(); live.actErr = null;
-      live.vehicles.act = await fetchActVehicles(token);
     } catch (err) {
-      live.actErr = err && err.message ? err.message : 'blocked'; live.actAt = null;
+      live.actErr = (err && err.message) || 'blocked'; live.actAt = null; live.vehAt = null;
       for (const k in live.act) delete live.act[k];
+      live.vehicles.act = []; live.vehicles.actAll = [];
+      return;
+    }
+    try {
+      live.vehicles.act = await fetchActVehicles(token);
+      live.vehAt = new Date(); live.vehErr = null;
+    } catch (err) {
+      live.vehErr = (err && err.message) || 'blocked'; live.vehAt = null;
       live.vehicles.act = []; live.vehicles.actAll = [];
     }
   }
@@ -1085,45 +1158,68 @@
   // Morning: home stop -> Salesforce TC Bay 19. Evening: TC bay -> closest stop to home (J's terminal shares its morning stop).
   const HOME_STOP = { J: { am: '55998', pm: '50035' }, FS: { am: '55722', pm: '50010' }, G: { am: '59600', pm: '50012' } };
   const TC_STOP =   { J: { am: '50019', pm: '55998' }, FS: { am: '50019', pm: '56667' }, G: { am: '50019', pm: '55165' } };
+  // Where those stops are, for patterns that list the corner under another stop id
+  const STOP_AT = { '55998': [37.87007, -122.28208], '55722': [37.87044, -122.2821], '59600': [37.87542, -122.29433],
+                    '56667': [37.87037, -122.28135], '55165': [37.8756, -122.2942],
+                    '50019': TC_LL, '50035': TC_LL, '50010': TC_LL, '50012': TC_LL };
+  const isStop = (q) => q.typ === 'S' || (q.typ == null && q.stpid != null);
+  function findStop(pts, id) {
+    const hit = pts.find(q => String(q.stpid) === id);
+    if (hit) return hit;
+    const ll = STOP_AT[id]; if (!ll) return null;
+    let best = null, bestD = 0.004;                                  // within about 400 m
+    for (const q of pts) {
+      if (!isStop(q)) continue;
+      const d = Math.hypot(Number(q.lat) - ll[0], (Number(q.lon) - ll[1]) * 0.79);
+      if (d < bestD) { best = q; bestD = d; }
+    }
+    return best;
+  }
+  // The boarding stop and the destination on one pattern, or null when the pattern runs the other way
+  function legOf(ptr, line, dir) {
+    const pts = (ptr && ptr.pt) || [];
+    const a = findStop(pts, HOME_STOP[line][dir]);
+    const b = findStop(pts, TC_STOP[line][dir]) || pts.filter(isStop).pop();
+    if (!a || !b || !(Number(a.pdist) < Number(b.pdist))) return null;
+    return { a, b, pts, A: Number(a.pdist), B: Number(b.pdist) };
+  }
   async function getPattern(pid, rt, token) {
     if (patternCache[pid]) return patternCache[pid];
-    const res = await fetch('https://api.actransit.org/transit/actrealtime/pattern?pid=' + pid + '&token=' + encodeURIComponent(token), { cache: 'force-cache' });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const ptr = (((data['bustime-response'] || {}).ptr) || [])[0];
-    if (ptr) { patternCache[pid] = ptr; patternRoute[pid] = rt; }
-    return ptr || null;
+    try {
+      const data = await actGet('pattern?pid=' + encodeURIComponent(pid), token);
+      const ptr = ((((data && data['bustime-response']) || {}).ptr) || [])[0];
+      if (ptr) { patternCache[pid] = ptr; patternRoute[pid] = rt; }
+      return ptr || null;
+    } catch (e) { return null; }
   }
   async function fetchActVehicles(token) {
-    try {
-      const res = await fetch('https://api.actransit.org/transit/actrealtime/vehicle?rt=J,FS,G&tmres=m&token=' + encodeURIComponent(token), { cache: 'no-store' });
-      if (!res.ok) return [];
-      const data = await res.json();
-      const vs = ((data['bustime-response'] || {}).vehicle) || [];
-      const dir = isEvening() ? 'pm' : 'am';
-      const out = [], all = [];
-      for (const v of vs) {
-        const rt = v.rt; if (!HOME_STOP[rt]) continue;
-        const ptr = await getPattern(v.pid, rt, token); if (!ptr) continue;
-        const pts = ptr.pt || [];
-        const a = pts.find(p => p.stpid === HOME_STOP[rt][dir]);
-        const b = pts.find(p => p.stpid === TC_STOP[rt][dir]) || pts.filter(p => p.typ === 'S').pop();  // else the pattern's last stop
-        if (!a || !b) continue;                       // this pattern runs the other way
-        const lo = Math.min(a.pdist, b.pdist), hi = Math.max(a.pdist, b.pdist);
-        const pd = Number(v.pdist);
-        if (Number.isNaN(pd)) continue;
-        const frac = (pd - a.pdist) / (b.pdist - a.pdist);      // 0 at the boarding stop, 1 at the destination
-        const veh = { line: rt, frac, label: v.dly ? 'delayed' : 'en route', late: !!v.dly, lat: Number(v.lat), lon: Number(v.lon), vid: v.vid, trip: v.tatripid, pid: v.pid };
-        all.push(veh);                                // every bus on this run, wherever it is (trip sheet)
-        if (pd < lo || pd > hi) continue;             // the maps only draw buses between the two stops
-        out.push({ ...veh, frac: Math.max(0, Math.min(1, frac)) });
-      }
-      live.vehicles.actAll = all;
-      return out;
-    } catch (e) { return []; }
+    const data = await actGet('vehicle?rt=J,FS,G&tmres=s', token);
+    const vs = (((data && data['bustime-response']) || {}).vehicle) || [];
+    const dir = isEvening() ? 'pm' : 'am';
+    const out = [], all = [];
+    for (const v of vs) {
+      const rt = String(v.rt || ''); if (!HOME_STOP[rt]) continue;
+      const ptr = await getPattern(v.pid, rt, token); if (!ptr) continue;
+      const leg = legOf(ptr, rt, dir); if (!leg) continue;           // running the other way
+      const pd = Number(v.pdist); if (!Number.isFinite(pd)) continue;
+      const frac = (pd - leg.A) / (leg.B - leg.A);                    // 0 at the boarding stop, 1 at the destination
+      const late = isTrue(v.dly);
+      const veh = { line: rt, frac, label: late ? 'delayed' : 'en route', late, lat: Number(v.lat), lon: Number(v.lon),
+                    vid: v.vid, trip: v.tatripid, tripid: v.tripid, pid: v.pid, at: parseStamp(v.tmstmp) };
+      all.push(veh);                                                  // every bus on this run, wherever it is (trip sheet)
+      if (frac >= 0 && frac <= 1) out.push(veh);                      // the maps only draw buses between the two stops
+    }
+    live.vehicles.actAll = all;
+    return out;
   }
 
-  async function refreshLive() { await Promise.all([fetchBart(), fetchAct()]); render(); }
+  async function refreshLive() { await Promise.all([fetchBart(), fetchAct()]); live.lastRefresh = Date.now(); render(); }
+  // Poll every 20 s while a trip sheet is open so the bus moves along its line; 45 s otherwise
+  let liveTimer = null;
+  function scheduleLive() {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(() => { refreshLive().finally(scheduleLive); }, trip.key ? 20000 : 45000);
+  }
 
   // ---------- Sun position for the Sky look ----------
   function sunTimes(date, lat, lon) {
@@ -1272,9 +1368,9 @@
     if (trip.key) renderTrip();
 
     // Live pill + feed status
-    const anyLive = !!(live.bartAt || live.actAt);
-    document.getElementById('pill').classList.toggle('on', anyLive);
-    document.getElementById('pillText').textContent = anyLive ? 'Live' : 'Schedule';
+    const busLive = !!live.actAt, trainLive = showBart && !!live.bartAt;
+    document.getElementById('pill').classList.toggle('on', busLive || trainLive);
+    document.getElementById('pillText').textContent = busLive ? 'Live' : trainLive ? 'Live · BART only' : 'Schedule';
     document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
     document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
   }
@@ -1523,45 +1619,50 @@
 
   // ---------- Trip sheet: tap a departure for its route, stops and live vehicle ----------
   const tripEl = document.getElementById('trip'), tripBody = document.getElementById('tripBody'), tripPanel = tripEl.querySelector('.trip-panel');
-  const trip = { key: null };
+  const trip = { key: null, lastY: new Map(), stamp: null };
   const routePatterns = {};
   const findRow = (key) => [...BUS, ...BUS_PM, ...BART, ...BART_PM].find(r => r.key === key);
   async function getRoutePatterns(rt, token) {
     if (routePatterns[rt]) return routePatterns[rt];
     try {
-      const res = await fetch('https://api.actransit.org/transit/actrealtime/pattern?rt=' + rt + '&token=' + encodeURIComponent(token), { cache: 'force-cache' });
-      if (!res.ok) return null;
-      const data = await res.json();
-      const ptrs = ((data['bustime-response'] || {}).ptr) || [];
+      const data = await actGet('pattern?rt=' + encodeURIComponent(rt), token);
+      const ptrs = (((data && data['bustime-response']) || {}).ptr) || [];
       for (const p of ptrs) { patternCache[p.pid] = p; patternRoute[p.pid] = rt; }
-      routePatterns[rt] = ptrs;
+      if (ptrs.length) routePatterns[rt] = ptrs;
       return ptrs;
     } catch (e) { return null; }
   }
-  const hasStop = (p, id) => (p.pt || []).some(q => q.stpid === id);
   function bestPattern(line, dir, preferPid) {
-    const a = HOME_STOP[line][dir], b = TC_STOP[line][dir];
-    if (preferPid && patternCache[preferPid] && hasStop(patternCache[preferPid], a)) return patternCache[preferPid];
+    if (preferPid != null && patternCache[preferPid] && legOf(patternCache[preferPid], line, dir)) return patternCache[preferPid];
     let best = null;
     for (const pid in patternCache) {
-      const p = patternCache[pid];
-      if (patternRoute[pid] !== line || !hasStop(p, a)) continue;
-      const score = (hasStop(p, b) ? 1000 : 0) + (p.pt || []).filter(q => q.typ === 'S').length;
-      if (!best || score > best.score) best = { p, score };
+      if (patternRoute[pid] !== line) continue;
+      const leg = legOf(patternCache[pid], line, dir); if (!leg) continue;
+      const score = (String(leg.b.stpid) === TC_STOP[line][dir] ? 1000 : 0) + leg.pts.filter(isStop).length;
+      if (!best || score > best.score) best = { p: patternCache[pid], score };
     }
     return best ? best.p : null;
   }
   const prettyStop = (s) => String(s || '').replace(/Martin Luther King Jr/i, 'MLK').replace(/Salesforce Transit Center/i, 'Salesforce TC ·')
     .replace(/\b(Av|Ave|St|Blvd|Way|Dr|Rd|Pl|Ln|Ct)\b\.?/g, '').replace(/\s+/g, ' ').replace(/\s+&/g, ' &').replace(/·\s*$/, '').trim();
   function patternStops(p, line, dir) {
-    const pts = (p.pt || []).filter(q => q.typ === 'S');
-    const a = pts.find(q => q.stpid === HOME_STOP[line][dir]);
-    const b = pts.find(q => q.stpid === TC_STOP[line][dir]) || pts[pts.length - 1];
-    const span = (b.pdist - a.pdist) || 1;
+    const leg = legOf(p, line, dir);
+    const pts = leg.pts.filter(isStop);
+    const span = (leg.B - leg.A) || 1;
     return pts.map((q, i) => ({
-      n: prettyStop(q.stpnm), id: q.stpid, f: (q.pdist - a.pdist) / span, board: q === a, dest: q === b,
-      bridge: i < pts.length - 1 && pts[i + 1].pdist - q.pdist > 15000,   // a 3-mile gap between stops: the bridge
+      n: prettyStop(q.stpnm), id: String(q.stpid), f: (Number(q.pdist) - leg.A) / span, board: q === leg.a, dest: q === leg.b,
+      bridge: i < pts.length - 1 && Number(pts[i + 1].pdist) - Number(q.pdist) > 15000,   // a 3-mile gap between stops: the bridge
     }));
+  }
+  const nowExact = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60; };
+  // Where the bus should be by the timetable: interpolate between the stops that carry times
+  function schedF(stops, t) {
+    const pts = stops.filter(s => s.t != null && Number.isFinite(s.f)).map(s => [s.t, s.f]).sort((x, y) => x[0] - y[0]);
+    if (pts.length < 2 || t < pts[0][0] || t > pts[pts.length - 1][0]) return null;
+    for (let i = 1; i < pts.length; i++) {
+      if (t <= pts[i][0]) { const [t0, f0] = pts[i - 1], [t1, f1] = pts[i]; return f0 + (f1 - f0) * ((t - t0) / ((t1 - t0) || 1)); }
+    }
+    return null;
   }
   function tripModel(row) {
     const pm = BUS_PM.includes(row) || BART_PM.includes(row);
@@ -1569,7 +1670,9 @@
     const lv = bart ? live.bart[row.key] : live.act[row.key];
     const ride = row.arr - row.dep, nowMin = nowMinutes();
     const buses = bart ? [] : (live.vehicles.actAll || []).filter(v => v.line === line);
-    const isMine = (v) => !!(lv && ((lv.trip && v.trip === lv.trip) || (lv.vid && v.vid === lv.vid)));
+    // Trip ids tie a bus to this run; the vehicle id alone could be a bus still finishing an earlier run
+    const isMine = (v) => !!lv && (((lv.trip && v.trip) || (lv.tripid && v.tripid))
+      ? (sameId(v.trip, lv.trip) || sameId(v.tripid, lv.tripid)) : sameId(v.vid, lv.vid));
     const mine = buses.find(isMine);
     let stops = null, source = 'schedule';
     if (!bart) { const pat = bestPattern(line, dir, mine && mine.pid); if (pat) { stops = patternStops(pat, line, dir); source = 'live'; } }
@@ -1582,17 +1685,49 @@
       else { const t = (s.id && tp[s.id] != null) ? tp[s.id] : tp[s.n]; if (t != null) s.t = t; }
     }
     const vehicles = [];
+    let feed;
     if (bart) {
-      if (lv) vehicles.push({ f: lv.min > 0 ? -1 : 0, label: lv.min > 0 ? 'your train · ' + lv.min + ' min out' : 'your train · leaving now', mine: true, late: lv.late });
-      else if (nowMin > row.dep && nowMin <= row.arr) vehicles.push({ f: (nowMin - row.dep) / ride, label: 'your train · by schedule', mine: true, sched: true });
+      if (lv) vehicles.push({ key: 'train', f: lv.min > 0 ? -1 : 0, label: lv.min > 0 ? 'your train · ' + lv.min + ' min out' : 'your train · leaving now', mine: true, late: lv.late });
+      else if (nowMin > row.dep && nowMin <= row.arr) vehicles.push({ key: 'train', f: (nowMin - row.dep) / ride, label: 'your train · by schedule', mine: true, sched: true });
+      feed = live.bartAt ? { kind: 'on', at: live.bartAt, text: 'Live · BART estimates' } : { kind: 'err', text: 'BART\'s live feed didn\'t answer, so this is the timetable.' };
     } else {
       for (const v of buses) {
         const m = isMine(v);
-        vehicles.push({ f: v.frac, mine: m, late: v.late, label: m ? 'your bus · ' + (lv.min <= 0 ? 'at your stop' : lv.min + ' min') + (lv.late ? ' · late' : '') : (v.late ? 'delayed' : 'en route') });
+        const where = v.frac > 0.01 ? (pm ? 'en route' : 'left your stop') : lv && lv.min <= 0 ? 'at your stop' : lv ? lv.min + ' min' : '';
+        vehicles.push({ key: 'bus' + v.vid, f: v.frac, mine: m, late: v.late, label: m ? 'your bus · ' + where + (lv.late ? ' · late' : '') : (v.late ? 'delayed' : 'en route') });
       }
       vehicles.sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0));
+      const feedOn = !!live.actAt;
+      if (!feedOn) {                                  // no live feed: show where the timetable puts the bus, clearly marked
+        const f = schedF(stops, nowExact());
+        if (f != null) vehicles.push({ key: 'sched', f, mine: true, sched: true, label: 'timetable position · not live' });
+      }
+      if (live.actErr === 'no-token') feed = { kind: 'off' };
+      else if (live.actErr === 'checking') feed = { kind: 'wait', text: 'Connecting to AC Transit…' };
+      else if (!feedOn) feed = { kind: 'err', key: true, text: 'AC Transit\'s live feed didn\'t answer (' + live.actErr + '). Trying again every 20 s.' };
+      else if (live.vehErr) feed = { kind: 'err', text: 'Arrival times are live, but bus positions didn\'t load (' + live.vehErr + ').' };
+      else if (mine) feed = { kind: 'on', at: mine.at || live.vehAt, text: 'Live · bus ' + mine.vid };
+      else if (lv) feed = { kind: 'wait', text: 'Live. Your bus isn\'t reporting a position on this run yet; it appears on the line once it does.' };
+      else feed = { kind: 'wait', text: 'Live. AC Transit has no prediction for this trip yet; it shows up closer to departure.' };
     }
-    return { row, pm, line, bart, lv, ride, stops, source, vehicles };
+    return { row, pm, line, bart, lv, ride, stops, source, vehicles, feed };
+  }
+  const KEY_FORM = '<form class="tl-form"><input type="text" name="key" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Paste your AC Transit key" aria-label="AC Transit key"><button type="submit">Go live</button></form>';
+  function feedHtml(m) {
+    const f = m.feed;
+    if (f.kind === 'off') return `
+      <div class="trip-live off">
+        <div class="tl-row"><span class="tl-dot"></span><b>See this bus live</b></div>
+        <p>AC Transit's live feed needs a free personal key. Getting one takes about two minutes and an email address. Paste it here once on each device.</p>
+        ${KEY_FORM}
+        <a href="https://api.actransit.org/transit/Account/Register" target="_blank" rel="noopener">Get a free key</a>
+      </div>`;
+    const body = f.kind === 'on' ? `<b>${esc(f.text)}</b> · <span id="tripAgo"></span>` : esc(f.text);
+    return `
+      <div class="trip-live ${f.kind}">
+        <div class="tl-row"><span class="tl-dot"></span><span>${body}</span></div>
+        ${f.key ? `<details><summary>Change key</summary>${KEY_FORM}</details>` : ''}
+      </div>`;
   }
   function tripHtml(m) {
     const { row, line, bart, lv, ride, stops } = m;
@@ -1618,15 +1753,15 @@
     }).join('');
     const note = bart ? 'Station times are spaced along the scheduled ride; the train position comes from BART\'s live estimates.'
       : m.source === 'live' ? 'Every stop from AC Transit\'s live pattern for this run; ~ times are estimates between printed timepoints.'
-      : live.actErr === 'no-token' ? 'Timepoints from the schedule. Save an AC Transit token under About to see every stop and where the bus is.'
       : 'Timepoints from the schedule; the live pattern fills in every stop once the AC Transit feed answers.';
-    return head + `<ol class="rt ${line}" id="rtList">${list}</ol><p class="trip-note">${note}</p>`;
+    return head + feedHtml(m) + `<ol class="rt ${line}" id="rtList">${list}</ol><p class="trip-note">${note}</p>`;
   }
   function placeVehicles(m) {
     const ol = document.getElementById('rtList'); if (!ol) return;
     const lis = [...ol.querySelectorAll('li.st')]; if (!lis.length) return;
     const mid = (i) => lis[i].offsetTop + lis[i].offsetHeight / 2;
     const fs = m.stops.map(s => s.f);
+    const seen = new Map();
     for (const v of m.vehicles) {
       let y;
       if (v.f <= fs[0]) y = mid(0) - (v.f < fs[0] ? 26 : 0);
@@ -1636,37 +1771,62 @@
         const t = (v.f - fs[i]) / ((fs[i + 1] - fs[i]) || 1);
         y = mid(i) + t * (mid(i + 1) - mid(i));
       }
+      const prev = trip.lastY.get(v.key);
       const el = document.createElement('div');
       el.className = 'rt-veh' + (v.mine ? ' mine' : '') + (v.late ? ' late' : '') + (v.sched ? ' sched' : '');
-      el.style.top = y.toFixed(1) + 'px';
+      el.style.top = (prev != null ? prev : y).toFixed(1) + 'px';
       el.innerHTML = `<span class="veh-dot"></span>${v.mine ? `<span class="veh-lbl">${esc(v.label)}</span>` : ''}`;
       ol.appendChild(el);
+      if (prev != null && Math.abs(prev - y) > 0.5) { el.getBoundingClientRect(); el.style.top = y.toFixed(1) + 'px'; }   // glide from the last spot
+      seen.set(v.key, y);
     }
+    trip.lastY = seen;
   }
+  function agoText(at) {
+    const s = Math.max(0, (Date.now() - at) / 1000);
+    return s < 10 ? 'updated just now' : s < 60 ? 'updated ' + Math.round(s) + ' s ago' : 'updated ' + Math.round(s / 60) + ' min ago';
+  }
+  function tickAgo() { const el = document.getElementById('tripAgo'); if (el && trip.stamp) el.textContent = agoText(trip.stamp); }
   function renderTrip() {
     if (!trip.key) return;
     const row = findRow(trip.key); if (!row) { closeTrip(); return; }
+    const ae = document.activeElement;
+    if (ae && ae.tagName === 'INPUT' && tripBody.contains(ae)) return;       // never wipe a key that's being typed
+    const typed = [...tripBody.querySelectorAll('input[name="key"]')].map(i => i.value).find(Boolean) || '';
     const m = tripModel(row);
     tripBody.innerHTML = tripHtml(m);
+    if (typed) { const inp = tripBody.querySelector('input[name="key"]'); if (inp) inp.value = typed; }
     placeVehicles(m);
+    trip.stamp = m.feed.kind === 'on' ? m.feed.at : null;
+    tickAgo();
   }
   function openTrip(key) {
     const row = findRow(key); if (!row) return;
+    if (trip.key !== key) trip.lastY = new Map();
     trip.key = key;
     if (!tripEl.open) { try { tripEl.showModal(); } catch (e) { tripEl.setAttribute('open', ''); } }
     document.documentElement.classList.add('sheet-open');
     renderTrip();                                     // after showModal, so the stop list has a layout to place vehicles on
     tripPanel.scrollTop = 0;
-    if (row.line !== 'BART') {
-      let token = ''; try { token = localStorage.getItem('actToken') || ''; } catch (e) {}
-      if (token) getRoutePatterns(row.line, token).then(p => { if (p && trip.key === key) renderTrip(); });
-    }
+    const token = getToken();
+    if (row.line !== 'BART' && token) getRoutePatterns(row.line, token).then(p => { if (p && trip.key === key) renderTrip(); });
+    if (Date.now() - live.lastRefresh > 10000) refreshLive();
+    scheduleLive();                                   // poll faster while the sheet is open
   }
   function closeTrip() {
     trip.key = null;
     if (tripEl.open) tripEl.close();
     document.documentElement.classList.remove('sheet-open');
   }
+  tripBody.addEventListener('submit', (e) => {
+    const form = e.target.closest('form.tl-form'); if (!form) return;
+    e.preventDefault();
+    const inp = form.querySelector('input[name="key"]'); const v = (inp.value || '').trim();
+    if (!v) { inp.focus(); return; }
+    inp.blur();
+    saveToken(v);
+  });
+  setInterval(tickAgo, 5000);
   const rowsHost = document.getElementById('rows');
   rowsHost.addEventListener('click', (e) => { const el = e.target.closest('.row[data-key]'); if (el) openTrip(el.dataset.key); });
   rowsHost.addEventListener('keydown', (e) => {
@@ -1692,12 +1852,40 @@
   tripPanel.addEventListener('touchcancel', swipeEnd);
 
   // ---------- Boot ----------
-  try { document.getElementById('actToken').value = localStorage.getItem('actToken') || ''; } catch (e) {}
-  document.getElementById('saveToken').addEventListener('click', () => {
-    const v = document.getElementById('actToken').value.trim();
+  // A setup link (…#token=KEY) saves the key on this device, then drops it from the address bar
+  (function takeTokenFromLink() {
+    const h = new URLSearchParams(location.hash.slice(1)), q = new URLSearchParams(location.search);
+    const t = (h.get('token') || q.get('token') || '').trim();
+    if (!t) return;
+    try { localStorage.setItem('actToken', t); } catch (e) {}
+    h.delete('token'); q.delete('token');
+    const qs = q.toString(), hs = h.toString();
+    try { history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + (hs ? '#' + hs : '')); } catch (e) {}
+  })();
+  function updateSetupLink() { const row = document.getElementById('setupLinkRow'); if (row) row.hidden = !getToken(); }
+  function saveToken(v) {
+    v = (v || '').trim();
     try { if (v) localStorage.setItem('actToken', v); else localStorage.removeItem('actToken'); } catch (e) {}
-    refreshLive();
+    document.getElementById('actToken').value = v;
+    actMode = 'fetch';
+    for (const k in routePatterns) delete routePatterns[k];
+    live.actErr = v ? 'checking' : 'no-token';
+    updateSetupLink();
+    renderTrip();
+    refreshLive().then(() => {
+      const r = trip.key && findRow(trip.key);
+      if (v && r && r.line !== 'BART') getRoutePatterns(r.line, v).then(p => { if (p && trip.key === r.key) renderTrip(); });
+    });
+  }
+  document.getElementById('actToken').value = getToken();
+  document.getElementById('saveToken').addEventListener('click', () => saveToken(document.getElementById('actToken').value));
+  document.getElementById('copySetup').addEventListener('click', async () => {
+    const link = location.origin + location.pathname + '#token=' + encodeURIComponent(getToken());
+    let ok = false;
+    try { await navigator.clipboard.writeText(link); ok = true; } catch (e) {}
+    document.getElementById('copySetupMsg').textContent = ok ? 'Copied. It contains your key, so only send it to yourself.' : link;
   });
+  updateSetupLink();
 
   document.documentElement.dataset.dir = (urlDir === 'pm' || urlDir === 'am') ? urlDir : autoDir;
   document.querySelectorAll('#dirPicker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dir === document.documentElement.dataset.dir)));
@@ -1705,6 +1893,6 @@
   setLook(savedLook, false);
   refreshLive();
   setInterval(render, 15000);
-  setInterval(refreshLive, 45000);
+  scheduleLive();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLive(); });
 </script>
