@@ -66,6 +66,9 @@ def get(url, dest=None, tries=3):
             return data
         except Exception as e:                        # noqa: BLE001
             print(f'  {url.split("?")[0]}: {e} (try {n + 1})', file=sys.stderr)
+            code = getattr(e, 'code', None)
+            if isinstance(code, int) and 400 <= code < 500 and code != 429:
+                return None                           # a refusal, not a hiccup: don't knock again
             if 'CERTIFICATE_VERIFY_FAILED' in str(e) and host not in _contexts:
                 try:
                     complete_chain(host, urllib.parse.urlsplit(url).port or 443)
@@ -94,6 +97,7 @@ def main():
 
     meta = get(PORTAL)
     if not meta:
+        print('::notice::AC Transit timetable unavailable without a key. Add the ACT_TOKEN secret to use AC Transit\'s API.', file=sys.stderr)
         done('', 'none')
     try:
         resources = json.loads(meta)['result']['resources']
