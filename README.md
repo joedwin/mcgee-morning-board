@@ -21,7 +21,7 @@ If the timetable file is missing or doesn't cover a day, the page falls back to 
 2. **GitHub secrets.** In this repo, go to *Settings → Secrets and variables → Actions* and add `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `ACT_TOKEN`, your AC Transit key from https://api.actransit.org/transit/Account/Register.
 3. **Run.** Under *Actions*, run *Deploy the live-data Worker* and *Refresh timetables*. The first writes `config.json` with the Worker's address, and the page picks it up on its next load.
 
-Without those steps, the timetable job still runs every night. BART comes from its public feed, and AC Transit from its keyless open-data portal when that copy is current.
+Without those steps the timetable job still runs every night and builds BART's timetable from its public feed. Bus times stay on the built-in ones until `ACT_TOKEN` is added, because AC Transit only hands out its timetable file to key holders.
 
 ## Details
 
