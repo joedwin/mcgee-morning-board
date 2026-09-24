@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+act.zip
+bart.zip
+act_gtfs/
+act_path.txt
+act_source.txt
+worker/node_modules/
+worker/.dev.vars
+worker/.wrangler/
+worker/deploy.log

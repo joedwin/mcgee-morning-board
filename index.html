@@ -299,6 +299,9 @@
   .ride b { color: var(--ink); font-weight: 600; font-size: 16px; }
 
   .hint { margin: -10px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+  .stamp { margin: -6px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .update-pill { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; font: inherit; font-size: 14px; font-weight: 700; padding: 10px 18px; border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 20px rgba(0,0,0,0.25); cursor: pointer; }
+  .update-pill[hidden] { display: none; }
   .banner { display: none; padding: 12px 16px; border: 1px solid var(--rule); border-radius: var(--radius); color: var(--muted); background: var(--surface); }
   .banner.show { display: block; }
 
@@ -781,16 +784,16 @@
       <h2>Stops</h2>
       <ul class="stops-list">
         <li><span class="dot line J">J</span><span><b>Sacramento St &amp; University Ave</b> · 0.5 mi. Boards on Sacramento St (stop 55998). First stop on the line, so you'll always get a seat.</span></li>
-        <li><span class="dot line FS">FS</span><span><b>University Ave &amp; Sacramento St</b> · 0.5 mi. Same corner as the J, boarding on University Ave westbound (stop 55722): the same distance as Shattuck &amp; Cedar without the climb. The bus comes down Shattuck from Solano &amp; Colusa and passes Shattuck &amp; Cedar at 6:19 and 8:01; Sacramento isn't a printed timepoint, so the ~ times are estimated between there and the University &amp; 6th timepoint (6:27, 8:09). Be there a couple of minutes early. Only two trips a morning.</span></li>
-        <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Stop 59600. Not a printed timepoint, so the ~ times are estimated from the Solano and University timepoints. Give it two extra minutes.</span></li>
-        <li class="bart-only"><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line direct to Montgomery every 20 min; in between, an Orange train with a cross-platform transfer to Yellow at MacArthur takes the same 27 min. Montgomery to the tower is a 5-minute walk.</span></li>
+        <li><span class="dot line FS">FS</span><span><b>University Ave &amp; Sacramento St</b> · 0.5 mi. Same corner as the J, boarding on University Ave westbound (stop 55722): the same distance as Shattuck &amp; Cedar without the climb. The bus comes down Shattuck from Solano &amp; Colusa and passes Shattuck &amp; Cedar at 6:19 and 8:01; Sacramento isn't a timepoint, so its times are estimates, marked ~. Be there a couple of minutes early. Only two trips a morning.</span></li>
+        <li><span class="dot line G">G</span><span><b>San Pablo Ave &amp; Cedar St</b> · 0.9 mi. Stop 59600. Not a timepoint, so its times are estimates, marked ~. Give it two extra minutes.</span></li>
+        <li class="bart-only"><span class="dot line BART">BART</span><span><b>North Berkeley BART</b> · 0.35 mi. Red line trains go direct to Montgomery; the board also lists Orange trains with a cross-platform change when they get you in sooner than waiting for the next Red. Montgomery to the tower is a 5-minute walk.</span></li>
       </ul>
     </div>
     <div>
       <h2>About these times</h2>
-      <p>Evening trips leave the Salesforce Transit Center (J from Bay 35, FS from Bay 10, G from Bay 12) and BART from Montgomery St. Arrival is the closest stop to home (the FS drops you at University &amp; Sacramento eastbound, stop 56667); ~ marks stops that aren't printed timepoints, estimated from the nearest one.</p>
-      <p>J, FS and G are express lines with no local riders and no weekend service. Distances are straight-line from home.</p>
-      <p>Schedules: <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a> (Dec 2023), <a href="https://www.actransit.org/bus-lines-schedules/fs">FS</a> (current Realign schedule, from the actransit.org stop pages, Sep 2026), <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> (Feb 2026), all posted as current on <a href="https://www.actransit.org/transbay">actransit.org</a>; BART times from the <a href="https://www.bart.gov/schedules">BART schedule</a> for North Berkeley → Montgomery.</p>
+      <p>Evening trips leave the Salesforce Transit Center (J from Bay 35, FS from Bay 10, G from Bay 12) and BART from Montgomery St. Arrival is the closest stop to home (the FS drops you at University &amp; Sacramento eastbound, stop 56667); ~ marks stops that aren't timepoints, where the time is an estimate.</p>
+      <p>J, FS and G are express lines with no local riders and no weekend or holiday service. Mornings leave out bus trips longer than 37 minutes. Distances are straight-line from home.</p>
+      <p>Times come from AC Transit's and BART's official timetable feeds, rebuilt every night, so schedule changes and holidays show up on their own. For any day the feeds don't cover, the board falls back to times typed from the printed <a href="https://www.actransit.org/sites/default/files/timetable_files/J-2023_12_03.pdf">J</a>, <a href="https://www.actransit.org/bus-lines-schedules/fs">FS</a> and <a href="https://www.actransit.org/sites/default/files/timetable_files/G-2026_02_01.pdf">G</a> timetables and a regular BART pattern.</p>
     </div>
   </div>
 
@@ -806,7 +809,9 @@
       <b>AC Transit</b><span id="actFeed">No token saved</span>
     </div>
   </details>
+  <p class="stamp" id="stamp"></p>
 </div>
+<button type="button" class="update-pill" id="updatePill" hidden>New version ready · Reload</button>
 
 <dialog class="trip" id="trip" aria-label="Trip details">
   <div class="trip-panel">
@@ -860,9 +865,81 @@
                      direct, arrLbl: 'North Berkeley', sub: direct ? 'Red line · direct' : 'Yellow · transfer at 19th St' });
     }
   }
+  // Built-in times (typed from the printed timetables): used for any day the generated timetable doesn't cover
+  const BUILTIN = { am: { bus: BUS.slice(), bart: BART.slice() }, pm: { bus: BUS_PM.slice(), bart: BART_PM.slice() } };
+
+  // ---------- Generated timetable: data/schedule.json, rebuilt nightly from AC Transit's and BART's feeds ----------
+  let SCHED = null;
+  const MAX_RIDE_AM = 37;                              // mornings leave out bus trips slower than this
+  const LEG = {
+    am: { J: { stop: 'Sacramento & University', dist: '0.5 mi', lead: 8 }, FS: { stop: 'University & Sacramento', dist: '0.5 mi', lead: 8 },
+          G: { stop: 'San Pablo & Cedar', dist: '0.9 mi', lead: 11 } },
+    pm: { J: { arrLbl: 'Sacramento & University' }, FS: { arrLbl: 'University & Sacramento' }, G: { arrLbl: 'San Pablo & Cedar' } },
+  };
+  const dateKey = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 12);
+  const dayName = (d) => d.toLocaleDateString([], { weekday: 'long' });
+  const schedDay = (key) => (SCHED && SCHED.sets[SCHED.days[key]]) || null;
+  // true or false: whether J, FS or G run that day in that direction; null: the generated timetable doesn't say
+  const busRuns = (key, dir) => { const d = schedDay(key); return d && d.bus && d.bus[dir] ? d.bus[dir].length > 0 : null; };
+  const inWindow = (t, dir) => dir === 'pm' || t.arr - t.dep <= MAX_RIDE_AM;
+  function busRows(list, dir, day) {
+    return list.filter(t => inWindow(t, dir)).map(t => {
+      const tp = {}, tpf = {};
+      for (const [code, min, flag] of t.stops) if (tp[code] == null) { tp[code] = min; tpf[code] = flag; }
+      const base = { key: t.line + '-' + t.dep, dep: t.dep, arr: t.arr, line: t.line, stpid: t.code, tp, tpf, gstops: t.stops, bi: t.bi, di: t.di, day };
+      return dir === 'am'
+        ? { ...base, ...LEG.am[t.line], approx: !!t.ab, arrLbl: 'Salesforce TC' }
+        : { ...base, stop: 'Salesforce TC' + (t.bay ? ' · Bay ' + t.bay : ''), dist: '', approx: !!t.ae, arrLbl: LEG.pm[t.line].arrLbl };
+    });
+  }
+  function bartRows(list, dir, day) {
+    return list.map(t => ({
+      key: (dir === 'am' ? 'BART-' : 'BARTPM-') + t.dep, dep: t.dep, arr: t.arr, line: 'BART', approx: false, direct: t.direct, day,
+      stop: dir === 'am' ? 'North Berkeley BART' : 'Montgomery St BART', dist: dir === 'am' ? '0.35 mi' : '', lead: 7,
+      arrLbl: dir === 'am' ? 'Montgomery · 5 min walk' : 'North Berkeley',
+      sub: t.direct ? t.color + ' line · direct' : t.color + ' · transfer at ' + t.via, to: t.to, gstops: t.stops, xi: t.xi,
+    }));
+  }
+  const refill = (arr, rows) => { arr.length = 0; arr.push(...rows); };
+  const shownDay = { am: null, pm: null };
+  function useDay(dir, key) {
+    if (shownDay[dir] === key) return;
+    shownDay[dir] = key;
+    const d = schedDay(key), bus = d && d.bus && d.bus[dir], bart = d && d.bart && d.bart[dir];
+    refill(dir === 'am' ? BUS : BUS_PM, bus ? busRows(bus, dir, key) : BUILTIN[dir].bus);
+    refill(dir === 'am' ? BART : BART_PM, bart ? bartRows(bart, dir, key) : BUILTIN[dir].bart);
+  }
+  // Which day's plan to show: today while its service is still ahead, otherwise the next day with J, FS or G service
+  function planFor(dir, now, nowMin) {
+    const today = dateKey(now), runsToday = busRuns(today, dir);
+    if (runsToday === null) return null;
+    if (runsToday && nowMin < (dir === 'am' ? 10 * 60 : 20 * 60)) return { key: today, today: true, runsToday };
+    let skipped = null;
+    for (let n = 1; n <= 21; n++) {
+      const d = addDays(now, n), k = dateKey(d), runs = busRuns(k, dir);
+      if (runs === null) return null;
+      if (runs) return { key: k, today: false, runsToday, date: d, skipped };
+      if (!skipped && d.getDay() !== 0 && d.getDay() !== 6) skipped = d;   // a weekday without service: a holiday
+    }
+    return null;
+  }
+  function firstBusAfter(dir, now) {
+    const p = planFor(dir, now, 24 * 60), d = p && schedDay(p.key);
+    const t = d && d.bus && (d.bus[dir] || []).find(x => inWindow(x, dir));
+    if (!t) return '';
+    const when = dateKey(p.date) === dateKey(addDays(now, 1)) ? 'Tomorrow' : dayName(p.date);
+    return `${when}'s first bus is the ${fmt(t.dep).t} ${t.line}.`;
+  }
+  const isTodays = (row) => !row.day || row.day === dateKey(new Date());
+  const kmBetween = (a, b) => Math.hypot((a[0] - b[0]) * 110.5, (a[1] - b[1]) * 88) ;
+
   const BART_KEY = 'MW9S-E7SL-26DU-VV8V';
   const bartUrl = () => 'https://api.bart.gov/api/etd.aspx?cmd=etd&orig=' + (isEvening() ? 'MONT' : 'NBRK') + '&key=' + BART_KEY + '&json=y';
-  const predPath = () => 'prediction?stpid=' + (isEvening() ? '50035,50010,50012' : '55998,55722,59600') + '&rt=J,FS,G&top=20&tmres=m';
+  const predPath = () => {
+    const ids = [...new Set((isEvening() ? BUS_PM : BUS).map(r => r.stpid).filter(Boolean))].slice(0, 10);
+    return 'prediction?stpid=' + (ids.join(',') || (isEvening() ? '50035,50010,50012' : '55998,55722,59600')) + '&rt=J,FS,G&top=20&tmres=m';
+  };
   const isEvening = () => document.documentElement.dataset.dir === 'pm';
   const HOME = { lat: 37.87, lon: -122.28 };  // rounded: only used for sunrise math
   const SHAPES = {"FS":[[37.87044,-122.2821],[37.86911,-122.29254],[37.86665,-122.30455],[37.86676,-122.30508],[37.86722,-122.3052],[37.86743,-122.3047],[37.86709,-122.3042],[37.86506,-122.30338],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82807,-122.29524],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.78584,-122.39125],[37.78513,-122.39298],[37.78524,-122.39452],[37.78684,-122.39655],[37.78767,-122.39831],[37.78805,-122.39853],[37.78867,-122.3978]],"G":[[37.87542,-122.29433],[37.86914,-122.29221],[37.8667,-122.30437],[37.86673,-122.30501],[37.86729,-122.30522],[37.8671,-122.30421],[37.86507,-122.30337],[37.85119,-122.29955],[37.83778,-122.29666],[37.83285,-122.29445],[37.82986,-122.29409],[37.82819,-122.29509],[37.82702,-122.2981],[37.82549,-122.30492],[37.82484,-122.31352],[37.82396,-122.31822],[37.82267,-122.32244],[37.82149,-122.33419],[37.81912,-122.35029],[37.81831,-122.35334],[37.81352,-122.36168],[37.7857,-122.39146],[37.78511,-122.39311],[37.78528,-122.3946],[37.78793,-122.39858],[37.78874,-122.3977]],"J":[[37.87007,-122.28208],[37.86231,-122.2813],[37.86095,-122.28071],[37.85346,-122.2792],[37.85215,-122.28715],[37.85102,-122.29109],[37.85008,-122.29085],[37.8495,-122.29234],[37.84678,-122.29149],[37.84619,-122.29648],[37.84038,-122.2947],[37.83854,-122.2947],[37.83816,-122.29702],[37.83965,-122.29772],[37.83967,-122.29726],[37.83178,-122.29421],[37.82957,-122.2941],[37.82809,-122.29517],[37.82702,-122.29805],[37.82551,-122.30485],[37.82407,-122.31766],[37.82258,-122.32246],[37.8215,-122.33334],[37.81883,-122.35088],[37.81803,-122.35363],[37.81376,-122.36132],[37.78584,-122.39115],[37.78504,-122.39334],[37.78548,-122.39501],[37.78777,-122.39832],[37.78822,-122.3983],[37.78925,-122.3969]],"BART":[[37.873967,-122.28344],[37.852803,-122.270062],[37.829065,-122.26704],[37.80835,-122.268602],[37.803768,-122.27145],[37.804872,-122.29514],[37.792874,-122.39702],[37.789405,-122.401066]]};
@@ -1026,7 +1103,16 @@
       document.head.appendChild(s);
     });
   }
+  let ACT_PROXY = '';                                  // the board's own Worker (config.json), once it's deployed
   async function actGet(path, token) {
+    if (ACT_PROXY) {
+      try {
+        const res = await fetch(ACT_PROXY + '/act/' + path, { cache: 'no-store' });
+        const body = await res.json().catch(() => null);
+        if (res.ok && body) return body;
+        if (!token) throw new Error((body && body.error) || 'HTTP ' + res.status);
+      } catch (e) { if (!token) throw e; }            // with a key pasted on this device, try AC Transit directly
+    }
     const url = ACT_BASE + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
     if (actMode === 'fetch') {
       let res = null;
@@ -1116,7 +1202,7 @@
   }
   async function fetchAct() {
     const token = getToken();
-    if (!token) { live.actErr = 'no-token'; live.actAt = null; live.vehAt = null; live.vehicles.act = []; live.vehicles.actAll = []; return; }
+    if (!token && !ACT_PROXY) { live.actErr = 'no-token'; live.actAt = null; live.vehAt = null; live.vehicles.act = []; live.vehicles.actAll = []; return; }
     try {
       const data = await actGet(predPath(), token);
       const resp = data && data['bustime-response'];
@@ -1300,16 +1386,29 @@
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const day = now.getDay();
     const weekend = day === 0 || day === 6;
-    const pm = isEvening();
-    const planning = weekend || (pm ? (nowMin < 13 * 60 || nowMin >= 20 * 60) : nowMin >= 10 * 60);
+    const pm = isEvening(), dir = pm ? 'pm' : 'am';
+    const plan = planFor(dir, now, nowMin);
+    let planning, bannerText = '';
+    if (plan) {
+      useDay(dir, plan.key);
+      planning = !plan.today || (pm && nowMin < 13 * 60);
+      const next = plan.date ? dayName(plan.date) : '';
+      if (!plan.runsToday) bannerText = (weekend ? "It's the weekend and J, FS and G only run on weekdays" : 'No J, FS or G buses today')
+        + `, so this is ${next}'s plan. The F bus runs daily from Shattuck & Allston if you need to get across today.`;
+      else if (plan.skipped) bannerText = `${dayName(plan.skipped)} has no J, FS or G service, so this is ${next}'s plan.`;
+    } else {
+      useDay(dir, 'built-in');
+      planning = weekend || (pm ? (nowMin < 13 * 60 || nowMin >= 20 * 60) : nowMin >= 10 * 60);
+      if (weekend) bannerText = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
+    }
     const BUS_SET = pm ? BUS_PM : BUS, BART_SET = pm ? BART_PM : BART;
     document.getElementById('eyebrowText').textContent = pm ? 'Weekday evenings · Salesforce Tower → North Berkeley' : 'Weekday mornings · North Berkeley → Salesforce Tower';
     const look = document.documentElement.dataset.look || 'classic';
     if (look === 'sky') applySky(nowMin);
 
     const banner = document.getElementById('banner');
-    if (weekend) banner.textContent = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
-    banner.classList.toggle('show', weekend);
+    banner.textContent = bannerText;
+    banner.classList.toggle('show', !!bannerText);
 
     const showBart = document.documentElement.dataset.mode !== 'bus';
     const upcomingBart = !showBart ? [] : planning ? BART_SET.slice(0, 4) : BART_SET.filter(r => r.dep >= nowMin).slice(0, 4);
@@ -1321,7 +1420,7 @@
     flipOnce = false;
     rowsEl.innerHTML = rows.map((tr, ri) => {
       const d = fmt(tr.dep), a = fmt(tr.arr);
-      const lv = tr.line === 'BART' ? live.bart[tr.key] : live.act[tr.key];
+      const lv = planning ? null : tr.line === 'BART' ? live.bart[tr.key] : live.act[tr.key];
       const liveMark = lv ? `<span class="livemin${lv.late ? ' late' : ''}">${lv.min <= 0 ? 'Leaving now' : 'Live · ' + lv.min + ' min'}${lv.late ? ' · late' : ''}</span>` : '';
       const metaBits = tr.dist ? [`<b>${tr.dist}</b>`] : [];
       if (tr.sub) metaBits.push(esc(tr.sub));
@@ -1335,7 +1434,7 @@
           </div>
           <div class="arrive"><span class="t">${a.t}</span><span class="lbl">${esc(tr.arrLbl)}</span></div>
         </div>`;
-    }).join('') || `<div class="row empty">${pm ? "No more express trips tonight. The F runs late from the Transit Center." : "No more express trips this morning. Tomorrow's first bus is the 5:50 J."}</div>`;
+    }).join('') || `<div class="row empty">${pm ? "No more express trips tonight. The F runs late from the Transit Center." : 'No more express trips this morning. ' + (firstBusAfter('am', now) || "Tomorrow's first bus is the 5:50 J.")}</div>`;
 
     // Map markers: the next departure per line, blinking when live
     const stopsXY = { BART: [150, 55], J: [150, 120], FS: [150, 185], G: [150, 250] };
@@ -1372,7 +1471,8 @@
     document.getElementById('pill').classList.toggle('on', busLive || trainLive);
     document.getElementById('pillText').textContent = busLive ? 'Live' : trainLive ? 'Live · BART only' : 'Schedule';
     document.getElementById('bartFeed').textContent = feedText(live.bartAt, live.bartErr, '');
-    document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved');
+    document.getElementById('actFeed').textContent = feedText(live.actAt, live.actErr, 'No token saved') + (ACT_PROXY && live.actAt ? ' through the board\'s own server' : '');
+    document.getElementById('stamp').textContent = stampText();
   }
 
   // ---------- Extra looks: real map, strips, radar, river, bay ----------
@@ -1654,6 +1754,26 @@
       bridge: i < pts.length - 1 && Number(pts[i + 1].pdist) - Number(q.pdist) > 15000,   // a 3-mile gap between stops: the bridge
     }));
   }
+  // Stop lists straight from the timetable feed; f runs 0 at your stop to 1 at your exit, by scheduled time
+  function busStops(row) {
+    const g = row.gstops, t0 = g[row.bi][1], span = (g[row.di][1] - t0) || 1;
+    const info = (c) => (SCHED && SCHED.stops[c]) || [c, null, null];
+    return g.map(([c, t, flag], i) => {
+      const [name, lat, lon] = info(c), nx = g[i + 1] && info(g[i + 1][0]);
+      return { n: prettyStop(name), id: c, t, est: flag === 0, f: (t - t0) / span, board: i === row.bi, dest: i === row.di,
+               bridge: !!(nx && lat != null && nx[1] != null && kmBetween([lat, lon], [nx[1], nx[2]]) > 3.5) };
+    });
+  }
+  function bartStops(row) {
+    const g = row.gstops, span = (row.arr - row.dep) || 1;
+    const info = (k) => (SCHED && SCHED.stations[k]) || [k, null, null];
+    return g.map(([k, t], i) => {
+      const [name, lat, lon] = info(k), nx = g[i + 1] && info(g[i + 1][0]);
+      return { n: name, t, f: (t - row.dep) / span, board: i === 0, dest: i === g.length - 1,
+               xfer: i === row.xi ? 'change to ' + (row.to || 'the next train') : null,
+               bridge: !!(nx && lat != null && nx[1] != null && kmBetween([lat, lon], [nx[1], nx[2]]) > 4) };
+    });
+  }
   const nowExact = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60; };
   // Where the bus should be by the timetable: interpolate between the stops that carry times
   function schedF(stops, t) {
@@ -1667,28 +1787,31 @@
   function tripModel(row) {
     const pm = BUS_PM.includes(row) || BART_PM.includes(row);
     const dir = pm ? 'pm' : 'am', line = row.line, bart = line === 'BART';
-    const lv = bart ? live.bart[row.key] : live.act[row.key];
+    const todays = isTodays(row);
+    const lv = !todays ? null : bart ? live.bart[row.key] : live.act[row.key];
     const ride = row.arr - row.dep, nowMin = nowMinutes();
-    const buses = bart ? [] : (live.vehicles.actAll || []).filter(v => v.line === line);
+    const buses = bart || !todays ? [] : (live.vehicles.actAll || []).filter(v => v.line === line);
     // Trip ids tie a bus to this run; the vehicle id alone could be a bus still finishing an earlier run
     const isMine = (v) => !!lv && (((lv.trip && v.trip) || (lv.tripid && v.tripid))
       ? (sameId(v.trip, lv.trip) || sameId(v.tripid, lv.tripid)) : sameId(v.vid, lv.vid));
     const mine = buses.find(isMine);
     let stops = null, source = 'schedule';
     if (!bart) { const pat = bestPattern(line, dir, mine && mine.pid); if (pat) { stops = patternStops(pat, line, dir); source = 'live'; } }
+    if (!stops && row.gstops) stops = bart ? bartStops(row) : busStops(row);      // every stop, from the timetable feed
     if (!stops) stops = ROUTE[dir][line].map(s => ({ ...s }));
     const tp = row.tp || {};
     for (const s of stops) {
       if (s.board) { s.t = row.dep; s.est = row.approx && !pm; }
       else if (s.dest) { s.t = row.arr; s.est = row.approx && pm; }
+      else if (s.t != null) { /* already timed by the timetable feed */ }
       else if (bart) { s.t = Math.round(row.dep + s.f * ride); s.est = true; }
-      else { const t = (s.id && tp[s.id] != null) ? tp[s.id] : tp[s.n]; if (t != null) s.t = t; }
+      else { const t = (s.id && tp[s.id] != null) ? tp[s.id] : tp[s.n]; if (t != null) { s.t = t; s.est = !!(row.tpf && row.tpf[s.id] === 0); } }
     }
     const vehicles = [];
     let feed;
     if (bart) {
       if (lv) vehicles.push({ key: 'train', f: lv.min > 0 ? -1 : 0, label: lv.min > 0 ? 'your train · ' + lv.min + ' min out' : 'your train · leaving now', mine: true, late: lv.late });
-      else if (nowMin > row.dep && nowMin <= row.arr) vehicles.push({ key: 'train', f: (nowMin - row.dep) / ride, label: 'your train · by schedule', mine: true, sched: true });
+      else if (todays && nowMin > row.dep && nowMin <= row.arr) vehicles.push({ key: 'train', f: (nowMin - row.dep) / ride, label: 'your train · by schedule', mine: true, sched: true });
       feed = live.bartAt ? { kind: 'on', at: live.bartAt, text: 'Live · BART estimates' } : { kind: 'err', text: 'BART\'s live feed didn\'t answer, so this is the timetable.' };
     } else {
       for (const v of buses) {
@@ -1698,7 +1821,7 @@
       }
       vehicles.sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0));
       const feedOn = !!live.actAt;
-      if (!feedOn) {                                  // no live feed: show where the timetable puts the bus, clearly marked
+      if (!feedOn && todays) {                        // no live feed: show where the timetable puts the bus, clearly marked
         const f = schedF(stops, nowExact());
         if (f != null) vehicles.push({ key: 'sched', f, mine: true, sched: true, label: 'timetable position · not live' });
       }
@@ -1751,8 +1874,9 @@
       const gap = s.bridge && i < stops.length - 1 ? `<li class="gap"><span></span><span class="nm">${bart ? 'Transbay Tube' : 'Bay Bridge'}</span><span></span></li>` : '';
       return `<li class="${cls}"><span class="dot"></span><span class="nm">${esc(s.n)}${tag}</span>${tm}</li>` + gap;
     }).join('');
-    const note = bart ? 'Station times are spaced along the scheduled ride; the train position comes from BART\'s live estimates.'
-      : m.source === 'live' ? 'Every stop from AC Transit\'s live pattern for this run; ~ times are estimates between printed timepoints.'
+    const note = bart ? (row.gstops ? 'Station times from BART\'s timetable' : 'Station times are spaced along the scheduled ride') + '; the train position comes from BART\'s live estimates.'
+      : m.source === 'live' ? 'Every stop from AC Transit\'s live pattern for this run; ~ times are estimates between timepoints.'
+      : row.gstops ? 'Every stop and time from AC Transit\'s timetable; ~ times are estimates between timepoints.'
       : 'Timepoints from the schedule; the live pattern fills in every stop once the AC Transit feed answers.';
     return head + feedHtml(m) + `<ol class="rt ${line}" id="rtList">${list}</ol><p class="trip-note">${note}</p>`;
   }
@@ -1784,7 +1908,10 @@
   }
   function agoText(at) {
     const s = Math.max(0, (Date.now() - at) / 1000);
-    return s < 10 ? 'updated just now' : s < 60 ? 'updated ' + Math.round(s) + ' s ago' : 'updated ' + Math.round(s / 60) + ' min ago';
+    if (s < 10) return 'updated just now';
+    if (s < 60) return 'updated ' + Math.round(s) + ' s ago';
+    if (s < 30 * 60) return 'updated ' + Math.round(s / 60) + ' min ago';
+    return 'last seen ' + at.toLocaleString([], { weekday: s > 20 * 3600 ? 'short' : undefined, hour: 'numeric', minute: '2-digit' });
   }
   function tickAgo() { const el = document.getElementById('tripAgo'); if (el && trip.stamp) el.textContent = agoText(trip.stamp); }
   function renderTrip() {
@@ -1809,7 +1936,7 @@
     renderTrip();                                     // after showModal, so the stop list has a layout to place vehicles on
     tripPanel.scrollTop = 0;
     const token = getToken();
-    if (row.line !== 'BART' && token) getRoutePatterns(row.line, token).then(p => { if (p && trip.key === key) renderTrip(); });
+    if (row.line !== 'BART' && (token || ACT_PROXY)) getRoutePatterns(row.line, token).then(p => { if (p && trip.key === key) renderTrip(); });
     if (Date.now() - live.lastRefresh > 10000) refreshLive();
     scheduleLive();                                   // poll faster while the sheet is open
   }
@@ -1851,6 +1978,37 @@
   tripPanel.addEventListener('touchend', swipeEnd);
   tripPanel.addEventListener('touchcancel', swipeEnd);
 
+  // ---------- Version stamp: when this copy of the page was published, and a nudge when a newer one is out ----------
+  const pageStamp = new Date(document.lastModified);
+  let pageVersion = null;
+  const shortDate = (d) => d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  function stampText() {
+    const bits = [];
+    if (!isNaN(pageStamp)) {
+      const built = pageVersion && new Date(pageVersion.built);
+      const sha = pageVersion && pageVersion.sha && built && Math.abs(built - pageStamp) < 10 * 60000 ? ' · ' + pageVersion.sha.slice(0, 7) : '';
+      bits.push('Page updated ' + shortDate(pageStamp) + sha);
+    }
+    if (SCHED) {
+      const src = SCHED.sources || {}, when = new Date(SCHED.generated).toLocaleDateString([], { month: 'short', day: 'numeric' });
+      const both = src.actransit && src.actransit.ok && src.bart && src.bart.ok;
+      bits.push(both ? `Timetables from AC Transit and BART, updated ${when}`
+        : src.bart && src.bart.ok ? `BART timetable updated ${when}; bus times from the printed timetables`
+        : src.actransit && src.actransit.ok ? `AC Transit timetable updated ${when}; BART times from a regular pattern` : 'Times from the printed timetables');
+    } else bits.push('Times from the printed timetables');
+    return bits.join('. ') + '.';
+  }
+  async function checkForUpdate() {
+    try {
+      const r = await fetch(location.pathname + '?check=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+      const lm = new Date(r.headers.get('last-modified') || '');
+      if (!isNaN(lm) && !isNaN(pageStamp) && lm - pageStamp > 60000) document.getElementById('updatePill').hidden = false;
+    } catch (e) {}
+  }
+  document.getElementById('updatePill').addEventListener('click', () => location.reload());
+  setInterval(checkForUpdate, 10 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+
   // ---------- Boot ----------
   // A setup link (…#token=KEY) saves the key on this device, then drops it from the address bar
   (function takeTokenFromLink() {
@@ -1874,7 +2032,7 @@
     renderTrip();
     refreshLive().then(() => {
       const r = trip.key && findRow(trip.key);
-      if (v && r && r.line !== 'BART') getRoutePatterns(r.line, v).then(p => { if (p && trip.key === r.key) renderTrip(); });
+      if ((v || ACT_PROXY) && r && r.line !== 'BART') getRoutePatterns(r.line, v).then(p => { if (p && trip.key === r.key) renderTrip(); });
     });
   }
   document.getElementById('actToken').value = getToken();
@@ -1891,7 +2049,17 @@
   document.querySelectorAll('#dirPicker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dir === document.documentElement.dataset.dir)));
   setMode(savedMode, false);
   setLook(savedLook, false);
-  refreshLive();
+  // Generated timetable and Worker address; live data waits for them briefly so it starts on the right footing
+  const loadJSON = (url) => fetch(url, { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+  const loaded = Promise.all([loadJSON('data/schedule.json'), loadJSON('config.json'), loadJSON('version.json')]).then(([sched, cfg, ver]) => {
+    if (sched && sched.version === 1 && sched.days && sched.sets) SCHED = sched;
+    if (cfg && /^https:\/\/[\w.-]+$/.test(cfg.api || '')) ACT_PROXY = cfg.api;
+    if (ver) pageVersion = ver;
+    shownDay.am = shownDay.pm = null;
+    flipOnce = true;
+    render();
+  });
+  Promise.race([loaded, new Promise(r => setTimeout(r, 2500))]).then(() => refreshLive());
   setInterval(render, 15000);
   scheduleLive();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLive(); });

@@ -1,0 +1,6 @@
+# The board's live-data helper: holds the AC Transit key and answers the page's requests.
+# Deployed by .github/workflows/worker.yml; the key is uploaded there as the ACT_TOKEN secret.
+name = "mcgee-board"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true

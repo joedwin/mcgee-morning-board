@@ -1,0 +1,98 @@
+name: Deploy the live-data Worker
+
+# Needs three repository secrets (Settings > Secrets and variables > Actions):
+#   CLOUDFLARE_API_TOKEN   an API token made from Cloudflare's "Edit Cloudflare Workers" template
+#   CLOUDFLARE_ACCOUNT_ID  your Cloudflare account ID
+#   ACT_TOKEN              your AC Transit API key
+# Until they exist this workflow does nothing, and the page keeps using a key pasted into it.
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/worker.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+      HAS_KEY: ${{ secrets.ACT_TOKEN != '' }}
+    steps:
+      - name: Waiting for Cloudflare secrets
+        if: env.HAS_CF != 'true'
+        run: echo "::notice::CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are not set yet, so there is nothing to deploy."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_CF == 'true'
+
+      - uses: actions/setup-node@v4
+        if: env.HAS_CF == 'true'
+        with:
+          node-version: '22'
+
+      - name: Test
+        if: env.HAS_CF == 'true'
+        working-directory: worker
+        run: node --test
+
+      - name: Deploy
+        id: deploy
+        if: env.HAS_CF == 'true'
+        working-directory: worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ACT_TOKEN: ${{ secrets.ACT_TOKEN }}
+        run: |
+          npx --yes wrangler@4 deploy 2>&1 | tee deploy.log
+          if [ "$HAS_KEY" = "true" ]; then
+            printf '%s' "$ACT_TOKEN" | npx --yes wrangler@4 secret put ACT_TOKEN
+          else
+            echo "::warning::ACT_TOKEN is not set, so the Worker can't fetch live data yet."
+          fi
+          url=$(grep -oE 'https://[A-Za-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          if [ -z "$url" ]; then
+            echo "::error::No workers.dev address in the deploy output. Open Workers & Pages in the Cloudflare dashboard once to pick your workers.dev subdomain, then run this again."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Check it answers with the key
+        id: health
+        if: env.HAS_CF == 'true'
+        run: |
+          for n in $(seq 1 12); do
+            body=$(curl -fsS "${{ steps.deploy.outputs.url }}/health" || true)
+            echo "try $n: $body"
+            if echo "$body" | grep -q '"key":true'; then echo "ok=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            sleep 5
+          done
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+
+      - name: Point the page at the Worker
+        if: env.HAS_CF == 'true' && steps.health.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          printf '{"api":"%s"}\n' "$URL" > config.json
+          if git ls-files --error-unmatch config.json >/dev/null 2>&1 && git diff --quiet -- config.json; then
+            echo "config.json already points at $URL"; exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add config.json
+          git commit -m "Point the board at its live-data Worker"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" >/dev/null || echo "Pages will rebuild on its own"

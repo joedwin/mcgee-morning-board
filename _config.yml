@@ -1,0 +1,2 @@
+# GitHub Pages: publish the board, its timetable data and version stamp; leave the tooling out.
+exclude: [tools, tests, worker, README.md]
