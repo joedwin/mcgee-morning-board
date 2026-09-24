@@ -1397,7 +1397,11 @@
         + `, so this is ${next}'s plan. The F bus runs daily from Shattuck & Allston if you need to get across today.`;
       else if (plan.skipped) bannerText = `${dayName(plan.skipped)} has no J, FS or G service, so this is ${next}'s plan.`;
     } else {
-      useDay(dir, 'built-in');
+      // No bus timetable for these days: pick the day by the weekday rule, still using whatever the feeds have (BART)
+      const past = weekend || (pm ? nowMin >= 20 * 60 : nowMin >= 10 * 60);
+      let d = new Date(now);
+      if (past) { d = addDays(now, 1); while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, 1); }
+      useDay(dir, dateKey(d));
       planning = weekend || (pm ? (nowMin < 13 * 60 || nowMin >= 20 * 60) : nowMin >= 10 * 60);
       if (weekend) bannerText = "It's the weekend. The three bus lines only run Monday through Friday and BART runs a different weekend timetable, so this board is showing Monday's plan. The F bus runs daily from Shattuck & Allston if you need to get across today.";
     }
